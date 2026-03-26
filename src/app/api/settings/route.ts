@@ -7,8 +7,13 @@ const settingsSchema = z.object({
 });
 
 export async function GET() {
-  const settings = await getAppSettings();
-  return NextResponse.json({ settings });
+  try {
+    const settings = await getAppSettings();
+    return NextResponse.json({ settings });
+  } catch (error) {
+    console.error("[API SETTINGS] failed to read settings", error);
+    return NextResponse.json({ message: "設定の取得に失敗しました" }, { status: 500 });
+  }
 }
 
 export async function PATCH(request: Request) {
@@ -24,6 +29,16 @@ export async function PATCH(request: Request) {
     );
   }
 
-  const settings = await upsertAppSettings(parsed.data);
-  return NextResponse.json({ settings });
+  try {
+    const settings = await upsertAppSettings(parsed.data);
+    return NextResponse.json({ settings });
+  } catch (error) {
+    console.error("[API SETTINGS] failed to save settings", error);
+    return NextResponse.json(
+      {
+        message: "設定の保存に失敗しました。Netlify ではローカル SQLite を保持できないため、環境変数での設定が必要な場合があります。"
+      },
+      { status: 500 }
+    );
+  }
 }

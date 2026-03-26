@@ -50,19 +50,24 @@ export function extractGroupIds(payload: LineWebhookPayload) {
 }
 
 export async function syncWebhookGroupId(groupId: string) {
-  const settings = await getAppSettings();
-  const currentGroupId = settings.lineGroupId;
+  try {
+    const settings = await getAppSettings();
+    const currentGroupId = settings.lineGroupId;
 
-  if (!currentGroupId || currentGroupId === "mock-line-group") {
-    await upsertAppSettings({ lineGroupId: groupId });
-    return { updated: true, reason: "empty_or_placeholder" as const };
+    if (!currentGroupId || currentGroupId === "mock-line-group") {
+      await upsertAppSettings({ lineGroupId: groupId });
+      return { updated: true, reason: "empty_or_placeholder" as const };
+    }
+
+    if (currentGroupId === groupId) {
+      return { updated: false, reason: "already_set" as const };
+    }
+
+    return { updated: false, reason: "manual_override_kept" as const };
+  } catch (error) {
+    console.error("[LINE WEBHOOK] failed to sync group id", { groupId, error });
+    return { updated: false, reason: "db_unavailable" as const };
   }
-
-  if (currentGroupId === groupId) {
-    return { updated: false, reason: "already_set" as const };
-  }
-
-  return { updated: false, reason: "manual_override_kept" as const };
 }
 
 export function resolveAppBaseUrl(input?: string | null) {
