@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Appointment {
+  id                       String            @id @default(cuid())
+  visitAt                  DateTime
+  telAt                    DateTime
+  age                      Int
+  gender                   String
+  nameKana                 String
+  phoneNumber              String
+  electricityCost          String?
+  sellPower                String?
+  panelYears               String?
+  gasOrEcoCute             String?
+  specialConditions        String?
+  detail                   String?
+  selfCall                 Boolean           @default(false)
+  telReminderEnabled       Boolean           @default(true)
+  telReminderSentAt        DateTime?
+  formNotificationSentAt   DateTime?
+  createdAt                DateTime          @default(now())
+  updatedAt                DateTime          @updatedAt
+  deletedAt                DateTime?
+  notificationLogs         NotificationLog[]
+
+  @@index([visitAt])
+  @@index([telAt])
+  @@index([selfCall, telReminderSentAt])
+  @@index([deletedAt])
+}
+
+model NotificationLog {
+  id              String      @id @default(cuid())
+  appointmentId   String
+  type            String
+  destinationType String
+  destinationId   String
+  payload         String
+  status          String
+  errorMessage    String?
+  sentAt          DateTime?
+  createdAt       DateTime    @default(now())
+  appointment     Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  @@index([appointmentId, type])
+  @@index([status, createdAt])
+}
+
+model AppSetting {
+  id         String   @id @default(cuid())
+  lineGroupId String
+  timezone   String   @default("Asia/Tokyo")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
