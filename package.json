@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:netlify": "npm run prisma:generate && npm run prisma:dbpush && npm run build",
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
