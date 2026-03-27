@@ -103,6 +103,32 @@
 
 Node.js 20 以上を用意してください。
 
+### 1. Supabase プロジェクトを作成
+
+1. Supabase で新規 project を作成
+2. `Project Settings > Database` で接続情報を確認
+3. 以下の2つを控える
+   - `DATABASE_URL`
+     - Transaction pooler の URL を推奨
+   - `DIRECT_URL`
+     - Direct connection の URL
+
+`.env` 例:
+
+```env
+DATABASE_URL="postgresql://postgres:password@db.xxxxxxxxxxxx.supabase.co:5432/postgres?pgbouncer=true&connection_limit=1"
+DIRECT_URL="postgresql://postgres:password@db.xxxxxxxxxxxx.supabase.co:5432/postgres"
+APP_BASE_URL="http://localhost:3000"
+APP_TIMEZONE="Asia/Tokyo"
+LINE_CHANNEL_ACCESS_TOKEN=""
+LINE_CHANNEL_SECRET=""
+LINE_GROUP_ID=""
+LINE_MOCK_MODE="true"
+CRON_SECRET="change-me"
+```
+
+### 2. ローカル起動
+
 ```bash
 cp .env.example .env
 npm install
@@ -124,7 +150,8 @@ Sources:
 Netlify の `Project configuration > Environment variables` に以下を登録してください。
 
 ```env
-DATABASE_URL=file:./dev.db
+DATABASE_URL=SupabaseのTransaction pooler URL
+DIRECT_URL=SupabaseのDirect connection URL
 APP_BASE_URL=https://あなたのNetlifyドメイン
 APP_TIMEZONE=Asia/Tokyo
 LINE_CHANNEL_ACCESS_TOKEN=...
@@ -141,6 +168,12 @@ CRON_SECRET=任意の長い文字列
 3. Bot を既存の LINE グループへ追加する
 4. グループで1回発言して `groupId` を自動取得する
 5. `設定` 画面で `LINEグループID` が入ったことを確認する
+
+### Supabase を使う理由
+
+- Netlify 本番では SQLite ファイルを安定して永続化できません
+- `appointments` の保存や通知ログの保持には永続DBが必要です
+- そのため、本番運用は Supabase/Postgres 前提にしてください
 
 ## サンプルデータ
 
@@ -177,6 +210,18 @@ LINE_MOCK_MODE=true
 5. 設定画面に自動反映された `LINEグループID` を確認
 4. `LINE_CHANNEL_ACCESS_TOKEN` と `LINE_CHANNEL_SECRET` を `.env` に設定
 5. `LINE_MOCK_MODE=false` に変更
+
+## Supabase 初期化メモ
+
+初回だけ以下を実行してください。
+
+```bash
+npm run prisma:generate
+npm run prisma:dbpush
+npm run seed
+```
+
+Netlify ではビルド時に `prisma db push` を実行する設定にしています。`DATABASE_URL` と `DIRECT_URL` が正しく入っていれば、テーブルは自動反映されます。
 
 ## Cron 実行例
 
