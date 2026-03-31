@@ -8,8 +8,8 @@ const timePattern = /^([01]?\d|2[0-3]):([0-5]\d)$/;
 
 export const appointmentFormSchema = z
   .object({
-    visitAtDateInput: z.string().min(1, "訪問日（月/日）は必須です"),
-    visitAtTimeInput: z.string().min(1, "訪問時間（HH:mm）は必須です"),
+    visitAtDateInput: z.string().optional().default(""),
+    visitAtTimeInput: z.string().optional().default(""),
     telAtDateInput: z.string().min(1, "TEL日（月/日）は必須です"),
     telAtTimeInput: z.string().min(1, "TEL時間（HH:mm）は必須です"),
     age: z.string().min(1, "年齢は必須です").regex(digitsRegex, "年齢は数字のみで入力してください"),
@@ -37,26 +37,57 @@ export const appointmentFormSchema = z
     appointmentType: z.enum(["蓄電池単体", "創蓄☀️"]).default("蓄電池単体")
   })
   .superRefine((data, ctx) => {
-    const visitDateOk = datePattern.test(data.visitAtDateInput.trim());
-    const visitTimeOk = timePattern.test(data.visitAtTimeInput.trim());
+    const visitDateInput = data.visitAtDateInput?.trim() ?? "";
+    const visitTimeInput = data.visitAtTimeInput?.trim() ?? "";
+    const visitIsEmpty = !visitDateInput && !visitTimeInput;
 
-    if (!visitDateOk) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["visitAtDateInput"],
-        message: "訪問日は mm/dd 形式で入力してください"
-      });
+    if (!data.telAppointment) {
+      if (!visitDateInput) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["visitAtDateInput"],
+          message: "訪問日（月/日）は必須です"
+        });
+      } else if (!datePattern.test(visitDateInput)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["visitAtDateInput"],
+          message: "訪問日は mm/dd 形式で入力してください"
+        });
+      }
+      if (!visitTimeInput) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["visitAtTimeInput"],
+          message: "訪問時間（HH:mm）は必須です"
+        });
+      } else if (!timePattern.test(visitTimeInput)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["visitAtTimeInput"],
+          message: "訪問時間は HH:mm 形式で入力してください"
+        });
+      }
+    } else if (!visitIsEmpty) {
+      // テレアポONでも入力があればフォーマットチェック
+      if (visitDateInput && !datePattern.test(visitDateInput)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["visitAtDateInput"],
+          message: "訪問日は mm/dd 形式で入力してください"
+        });
+      }
+      if (visitTimeInput && !timePattern.test(visitTimeInput)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["visitAtTimeInput"],
+          message: "訪問時間は HH:mm 形式で入力してください"
+        });
+      }
     }
-    if (!visitTimeOk) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["visitAtTimeInput"],
-        message: "訪問時間は HH:mm 形式で入力してください"
-      });
-    }
-    if (visitDateOk && visitTimeOk) {
-      const combined = `${data.visitAtDateInput.trim()} ${data.visitAtTimeInput.trim()}`;
-      if (!parseMonthDayTime(combined)) {
+
+    if (!visitIsEmpty && datePattern.test(visitDateInput) && timePattern.test(visitTimeInput)) {
+      if (!parseMonthDayTime(`${visitDateInput} ${visitTimeInput}`)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["visitAtDateInput"],
@@ -103,17 +134,35 @@ export function parseAppointmentPayload(input: unknown) {
     return parsed;
   }
 
-  const visitAt = parseMonthDayTime(`${parsed.data.visitAtDateInput} ${parsed.data.visitAtTimeInput}`);
+  const visitAtDateInput = parsed.data.visitAtDateInput?.trim() ?? "";
+  const visitAtTimeInput = parsed.data.visitAtTimeInput?.trim() ?? "";
+  const visitAt =
+    visitAtDateInput && visitAtTimeInput
+      ? parseMonthDayTime(`${visitAtDateInput} ${visitAtTimeInput}`)
+      : null;
+
   const telAt = parseMonthDayTime(`${parsed.data.telAtDateInput} ${parsed.data.telAtTimeInput}`);
 
-  if (!visitAt || !telAt) {
+  if (!parsed.data.telAppointment && !visitAt) {
     return {
       success: false as const,
       error: {
         flatten: () => ({
           fieldErrors: {
-            visitAtDateInput: visitAt ? [] : ["訪問日時を確認してください"],
-            telAtDateInput: telAt ? [] : ["TEL日時を確認してください"]
+            visitAtDateInput: ["訪問日時を確認してください"]
+          }
+        })
+      }
+    };
+  }
+
+  if (!telAt) {
+    return {
+      success: false as const,
+      error: {
+        flatten: () => ({
+          fieldErrors: {
+            telAtDateInput: ["TEL日時を確認してください"]
           }
         })
       }
@@ -125,7 +174,7 @@ export function parseAppointmentPayload(input: unknown) {
     data: {
       ...parsed.data,
       age: Number(parsed.data.age),
-      visitAt,
+      visitAt: visitAt ?? telAt,
       telAt,
       telReminderEnabled: !parsed.data.selfCall && !parsed.data.telAppointment
     }

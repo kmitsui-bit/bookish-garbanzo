@@ -174,7 +174,7 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
 
       <div className="grid gap-5 md:grid-cols-2">
         {/* 訪問日時 */}
-        <Field label="訪問日時" required error={errors.visitAtDateInput?.[0] ?? errors.visitAtTimeInput?.[0]}>
+        <Field label="訪問日時" required={!values.telAppointment} error={errors.visitAtDateInput?.[0] ?? errors.visitAtTimeInput?.[0]}>
           <div className="flex gap-2">
             <input
               className={inputClass}
@@ -321,6 +321,7 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
         <Field label="給湯設備">
           <input
             className={inputClass}
+            placeholder="ガス給湯器、エネファーム、エコキュートなど"
             value={values.gasOrEcoCute}
             onChange={(event) => setValues((prev) => ({ ...prev, gasOrEcoCute: event.target.value }))}
           />
