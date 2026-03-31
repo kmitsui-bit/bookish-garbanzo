@@ -10,6 +10,7 @@ export async function getAppSettings() {
     return {
       id: setting?.id ?? null,
       lineGroupId: setting?.lineGroupId || env.lineGroupId,
+      telReminderLineGroupId: setting?.telReminderLineGroupId || env.telReminderLineGroupId,
       timezone: setting?.timezone || env.timezone,
       lineMockMode: env.lineMockMode
     };
@@ -18,13 +19,14 @@ export async function getAppSettings() {
     return {
       id: null,
       lineGroupId: env.lineGroupId,
+      telReminderLineGroupId: env.telReminderLineGroupId,
       timezone: env.timezone,
       lineMockMode: env.lineMockMode
     };
   }
 }
 
-export async function upsertAppSettings(input: { lineGroupId: string }) {
+export async function upsertAppSettings(input: { lineGroupId: string; telReminderLineGroupId?: string }) {
   const existing = await prisma.appSetting.findFirst({
     orderBy: { createdAt: "asc" }
   });
@@ -34,6 +36,7 @@ export async function upsertAppSettings(input: { lineGroupId: string }) {
       where: { id: existing.id },
       data: {
         lineGroupId: input.lineGroupId,
+        telReminderLineGroupId: input.telReminderLineGroupId ?? existing.telReminderLineGroupId,
         timezone: env.timezone
       }
     });
@@ -42,6 +45,7 @@ export async function upsertAppSettings(input: { lineGroupId: string }) {
   return prisma.appSetting.create({
     data: {
       lineGroupId: input.lineGroupId,
+      telReminderLineGroupId: input.telReminderLineGroupId ?? "",
       timezone: env.timezone
     }
   });

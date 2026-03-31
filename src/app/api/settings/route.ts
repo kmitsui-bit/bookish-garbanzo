@@ -3,7 +3,8 @@ import { z } from "zod";
 import { getAppSettings, upsertAppSettings } from "@/lib/settings";
 
 const settingsSchema = z.object({
-  lineGroupId: z.string().min(1, "LINEグループIDは必須です")
+  lineGroupId: z.string().min(1, "LINEグループIDは必須です"),
+  telReminderLineGroupId: z.string().optional().default("")
 });
 
 export async function GET() {

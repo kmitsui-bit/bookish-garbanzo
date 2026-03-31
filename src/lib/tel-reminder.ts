@@ -1,10 +1,10 @@
 import type { Appointment } from "@prisma/client";
-import { addMinutes } from "date-fns";
+import { addMinutes, endOfMinute, startOfMinute } from "date-fns";
 
 export function getTelReminderWindow(now = new Date()) {
   return {
-    targetStart: addMinutes(now, 4),
-    targetEnd: addMinutes(now, 6)
+    targetStart: startOfMinute(addMinutes(now, 4)),
+    targetEnd: endOfMinute(addMinutes(now, 5))
   };
 }
 

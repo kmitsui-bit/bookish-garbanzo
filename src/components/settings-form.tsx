@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 type Props = {
   initialValues: {
     lineGroupId: string;
+    telReminderLineGroupId: string;
     timezone: string;
     lineMockMode: boolean;
   };
@@ -62,11 +63,21 @@ export function SettingsForm({ initialValues }: Props) {
   return (
     <form onSubmit={handleSubmit} className="space-y-5 rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
       <label className="space-y-2">
-        <span className="text-sm font-medium text-slate-800">LINEグループID</span>
+        <span className="text-sm font-medium text-slate-800">LINEグループID（アポ通知用）</span>
         <input
           className={inputClass}
           value={values.lineGroupId}
           onChange={(event) => setValues((prev) => ({ ...prev, lineGroupId: event.target.value }))}
+        />
+      </label>
+
+      <label className="space-y-2">
+        <span className="text-sm font-medium text-slate-800">LINEグループID（TELリマインド用）</span>
+        <p className="text-xs text-slate-500">TEL5分前通知を送る別グループのID。空欄の場合はアポ通知用グループに送ります。</p>
+        <input
+          className={inputClass}
+          value={values.telReminderLineGroupId}
+          onChange={(event) => setValues((prev) => ({ ...prev, telReminderLineGroupId: event.target.value }))}
         />
       </label>
 

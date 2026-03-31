@@ -3,12 +3,13 @@ import { addMinutes } from "date-fns";
 import { getTelReminderWindow, isTelReminderEligible } from "@/lib/tel-reminder";
 
 const now = new Date("2026-03-26T12:00:00.000Z");
+const nowWithSeconds = new Date("2026-03-26T12:00:45.000Z");
 
 describe("tel reminder helpers", () => {
-  it("creates a 4 to 6 minute window", () => {
+  it("creates a minute-aligned reminder window", () => {
     const { targetStart, targetEnd } = getTelReminderWindow(now);
     expect(targetStart.toISOString()).toBe("2026-03-26T12:04:00.000Z");
-    expect(targetEnd.toISOString()).toBe("2026-03-26T12:06:00.000Z");
+    expect(targetEnd.toISOString()).toBe("2026-03-26T12:05:59.999Z");
   });
 
   it("accepts appointments inside the window", () => {
@@ -22,6 +23,21 @@ describe("tel reminder helpers", () => {
           deletedAt: null
         },
         now
+      )
+    ).toBe(true);
+  });
+
+  it("accepts a target minute even when the job runs with seconds", () => {
+    expect(
+      isTelReminderEligible(
+        {
+          telAt: new Date("2026-03-26T12:05:00.000Z"),
+          selfCall: false,
+          telReminderEnabled: true,
+          telReminderSentAt: null,
+          deletedAt: null
+        },
+        nowWithSeconds
       )
     ).toBe(true);
   });
@@ -63,6 +79,19 @@ describe("tel reminder helpers", () => {
           deletedAt: null
         },
         now
+      )
+    ).toBe(false);
+
+    expect(
+      isTelReminderEligible(
+        {
+          telAt: new Date("2026-03-26T12:06:00.000Z"),
+          selfCall: false,
+          telReminderEnabled: true,
+          telReminderSentAt: null,
+          deletedAt: null
+        },
+        nowWithSeconds
       )
     ).toBe(false);
   });

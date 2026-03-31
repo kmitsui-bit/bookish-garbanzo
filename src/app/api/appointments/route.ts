@@ -34,13 +34,20 @@ export async function POST(request: Request) {
       gender: parsed.data.gender,
       nameKana: parsed.data.nameKana.trim(),
       phoneNumber: parsed.data.phoneNumber.trim(),
-      electricityCost: parsed.data.electricityCost,
-      sellPower: parsed.data.sellPower,
+      electricityCostHigh: parsed.data.electricityCostHigh,
+      electricityCostLow: parsed.data.electricityCostLow,
+      sellPowerHigh: parsed.data.sellPowerHigh,
+      sellPowerLow: parsed.data.sellPowerLow,
+      gasCostHigh: parsed.data.gasCostHigh,
+      gasCostLow: parsed.data.gasCostLow,
+      gasUsageEquipment: parsed.data.gasUsageEquipment,
       panelYears: parsed.data.panelYears,
       gasOrEcoCute: parsed.data.gasOrEcoCute,
       specialConditions: parsed.data.specialConditions,
       detail: parsed.data.detail,
+      appointmentType: parsed.data.appointmentType,
       selfCall: parsed.data.selfCall,
+      telAppointment: parsed.data.telAppointment,
       telReminderEnabled: parsed.data.telReminderEnabled
     }
   });

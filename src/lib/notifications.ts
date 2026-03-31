@@ -111,10 +111,11 @@ export async function sendTelReminderNotification(appointment: Appointment) {
   }
 
   const payload = buildTelReminderMessage(appointment);
+  const destinationId = settings.telReminderLineGroupId || settings.lineGroupId;
 
   try {
-    await pushLineMessage(payload, settings.lineGroupId);
-    await createNotificationLog(appointment.id, "tel_reminder", settings.lineGroupId, payload, "success");
+    await pushLineMessage(payload, destinationId);
+    await createNotificationLog(appointment.id, "tel_reminder", destinationId, payload, "success");
     await prisma.appointment.update({
       where: { id: appointment.id },
       data: { telReminderSentAt: new Date() }
@@ -122,7 +123,7 @@ export async function sendTelReminderNotification(appointment: Appointment) {
     return { sent: true };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown LINE error";
-    await createNotificationLog(appointment.id, "tel_reminder", settings.lineGroupId, payload, "failed", message);
+    await createNotificationLog(appointment.id, "tel_reminder", destinationId, payload, "failed", message);
     console.error("TEL reminder failed", error);
     return { sent: false, error: message };
   }

@@ -22,7 +22,16 @@ model Appointment {
   gasOrEcoCute             String?
   specialConditions        String?
   detail                   String?
+  electricityCostHigh      String?
+  electricityCostLow       String?
+  sellPowerHigh            String?
+  sellPowerLow             String?
+  gasCostHigh              String?
+  gasCostLow               String?
+  gasUsageEquipment        String?
+  appointmentType          String            @default("蓄電池単体")
   selfCall                 Boolean           @default(false)
+  telAppointment           Boolean           @default(false)
   telReminderEnabled       Boolean           @default(true)
   telReminderSentAt        DateTime?
   formNotificationSentAt   DateTime?
@@ -55,9 +64,10 @@ model NotificationLog {
 }
 
 model AppSetting {
-  id         String   @id @default(cuid())
-  lineGroupId String
-  timezone   String   @default("Asia/Tokyo")
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id                     String   @id @default(cuid())
+  lineGroupId            String
+  telReminderLineGroupId String   @default("")
+  timezone               String   @default("Asia/Tokyo")
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 }

@@ -41,6 +41,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
 
   const telChanged = existing.telAt.getTime() !== parsed.data.telAt.getTime();
   const selfCallChanged = existing.selfCall !== parsed.data.selfCall;
+  const telAppointmentChanged = existing.telAppointment !== parsed.data.telAppointment;
 
   const appointment = await prisma.appointment.update({
     where: { id },
@@ -51,15 +52,22 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       gender: parsed.data.gender,
       nameKana: parsed.data.nameKana.trim(),
       phoneNumber: parsed.data.phoneNumber.trim(),
-      electricityCost: parsed.data.electricityCost,
-      sellPower: parsed.data.sellPower,
+      electricityCostHigh: parsed.data.electricityCostHigh,
+      electricityCostLow: parsed.data.electricityCostLow,
+      sellPowerHigh: parsed.data.sellPowerHigh,
+      sellPowerLow: parsed.data.sellPowerLow,
+      gasCostHigh: parsed.data.gasCostHigh,
+      gasCostLow: parsed.data.gasCostLow,
+      gasUsageEquipment: parsed.data.gasUsageEquipment,
       panelYears: parsed.data.panelYears,
       gasOrEcoCute: parsed.data.gasOrEcoCute,
       specialConditions: parsed.data.specialConditions,
       detail: parsed.data.detail,
+      appointmentType: parsed.data.appointmentType,
       selfCall: parsed.data.selfCall,
+      telAppointment: parsed.data.telAppointment,
       telReminderEnabled: parsed.data.telReminderEnabled,
-      telReminderSentAt: telChanged || selfCallChanged ? null : existing.telReminderSentAt
+      telReminderSentAt: telChanged || selfCallChanged || telAppointmentChanged ? null : existing.telReminderSentAt
     }
   });
 
