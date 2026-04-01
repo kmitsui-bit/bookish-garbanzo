@@ -41,6 +41,24 @@ export function toFormDateTime(value: Date | string, timezone = env.timezone) {
   return formatInTimeZone(date, timezone, "MM/dd HH:mm");
 }
 
+export function toFormDate(value: Date | string, timezone = env.timezone) {
+  const date = typeof value === "string" ? new Date(value) : value;
+  return formatInTimeZone(date, timezone, "yyyy-MM-dd");
+}
+
+export function toFormTime(value: Date | string, timezone = env.timezone) {
+  const date = typeof value === "string" ? new Date(value) : value;
+  return formatInTimeZone(date, timezone, "HH:mm");
+}
+
+export function parseDateTimeInput(dateStr: string, timeStr: string, timezone = env.timezone) {
+  if (!dateStr || !timeStr) return null;
+  const isoLike = `${dateStr}T${timeStr}:00`;
+  const zoned = fromZonedTime(isoLike, timezone);
+  if (!isValid(zoned)) return null;
+  return zoned;
+}
+
 export function formatCreatedAt(value: Date | string, timezone = env.timezone) {
   const date = typeof value === "string" ? new Date(value) : value;
   return formatInTimeZone(date, timezone, "yyyy/MM/dd HH:mm");

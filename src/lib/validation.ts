@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { parseMonthDayTime } from "@/lib/date";
+import { parseDateTimeInput } from "@/lib/date";
 
 const kataKanaRegex = /^[ァ-ヶー　\s]+$/;
 const digitsRegex = /^\d+$/;
-const datePattern = /^(0?[1-9]|1[0-2])\/(0?[1-9]|[12]\d|3[01])$/;
+const datePattern = /^\d{4}-\d{2}-\d{2}$/;
 const timePattern = /^([01]?\d|2[0-3]):([0-5]\d)$/;
 
 export const appointmentFormSchema = z
@@ -45,84 +45,28 @@ export const appointmentFormSchema = z
 
     if (!data.telAppointment) {
       if (!visitDateInput) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["visitAtDateInput"],
-          message: "訪問日（月/日）は必須です"
-        });
-      } else if (!datePattern.test(visitDateInput)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["visitAtDateInput"],
-          message: "訪問日は mm/dd 形式で入力してください"
-        });
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["visitAtDateInput"], message: "訪問日は必須です" });
       }
       if (!visitTimeInput) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["visitAtTimeInput"],
-          message: "訪問時間（HH:mm）は必須です"
-        });
-      } else if (!timePattern.test(visitTimeInput)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["visitAtTimeInput"],
-          message: "訪問時間は HH:mm 形式で入力してください"
-        });
-      }
-    } else if (!visitIsEmpty) {
-      // テレアポONでも入力があればフォーマットチェック
-      if (visitDateInput && !datePattern.test(visitDateInput)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["visitAtDateInput"],
-          message: "訪問日は mm/dd 形式で入力してください"
-        });
-      }
-      if (visitTimeInput && !timePattern.test(visitTimeInput)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["visitAtTimeInput"],
-          message: "訪問時間は HH:mm 形式で入力してください"
-        });
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["visitAtTimeInput"], message: "訪問時間は必須です" });
       }
     }
 
-    if (!visitIsEmpty && datePattern.test(visitDateInput) && timePattern.test(visitTimeInput)) {
-      if (!parseMonthDayTime(`${visitDateInput} ${visitTimeInput}`)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["visitAtDateInput"],
-          message: "訪問日時を確認してください"
-        });
+    if (!visitIsEmpty && visitDateInput && visitTimeInput) {
+      if (!parseDateTimeInput(visitDateInput, visitTimeInput)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["visitAtDateInput"], message: "訪問日時を確認してください" });
       }
     }
 
-    const telDateOk = datePattern.test(data.telAtDateInput.trim());
-    const telTimeOk = timePattern.test(data.telAtTimeInput.trim());
-
-    if (!telDateOk) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["telAtDateInput"],
-        message: "TEL日は mm/dd 形式で入力してください"
-      });
+    if (!data.telAtDateInput) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["telAtDateInput"], message: "TEL日は必須です" });
     }
-    if (!telTimeOk) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["telAtTimeInput"],
-        message: "TEL時間は HH:mm 形式で入力してください"
-      });
+    if (!data.telAtTimeInput) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["telAtTimeInput"], message: "TEL時間は必須です" });
     }
-    if (telDateOk && telTimeOk) {
-      const combined = `${data.telAtDateInput.trim()} ${data.telAtTimeInput.trim()}`;
-      if (!parseMonthDayTime(combined)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["telAtDateInput"],
-          message: "TEL日時を確認してください"
-        });
+    if (data.telAtDateInput && data.telAtTimeInput) {
+      if (!parseDateTimeInput(data.telAtDateInput, data.telAtTimeInput)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["telAtDateInput"], message: "TEL日時を確認してください" });
       }
     }
   });
@@ -140,10 +84,10 @@ export function parseAppointmentPayload(input: unknown) {
   const visitAtTimeInput = parsed.data.visitAtTimeInput?.trim() ?? "";
   const visitAt =
     visitAtDateInput && visitAtTimeInput
-      ? parseMonthDayTime(`${visitAtDateInput} ${visitAtTimeInput}`)
+      ? parseDateTimeInput(visitAtDateInput, visitAtTimeInput)
       : null;
 
-  const telAt = parseMonthDayTime(`${parsed.data.telAtDateInput} ${parsed.data.telAtTimeInput}`);
+  const telAt = parseDateTimeInput(parsed.data.telAtDateInput, parsed.data.telAtTimeInput);
 
   if (!parsed.data.telAppointment && !visitAt) {
     return {

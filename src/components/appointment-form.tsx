@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Appointment } from "@prisma/client";
-import { toFormDateTime } from "@/lib/date";
+import { toFormDate, toFormTime } from "@/lib/date";
 import type { AppointmentFormInput } from "@/lib/validation";
 import { cn } from "@/lib/utils";
 
@@ -72,10 +72,10 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
   const router = useRouter();
 
   const initialForm = useMemo<AppointmentFormInput>(() => {
-    const visitDt = initialValues?.visitAt ? toFormDateTime(initialValues.visitAt) : "";
-    const [visitAtDateInput = "", visitAtTimeInput = ""] = visitDt.split(" ");
-    const telDt = initialValues?.telAt ? toFormDateTime(initialValues.telAt) : "";
-    const [telAtDateInput = "", telAtTimeInput = ""] = telDt.split(" ");
+    const visitAtDateInput = initialValues?.visitAt ? toFormDate(initialValues.visitAt) : "";
+    const visitAtTimeInput = initialValues?.visitAt ? toFormTime(initialValues.visitAt) : "";
+    const telAtDateInput = initialValues?.telAt ? toFormDate(initialValues.telAt) : "";
+    const telAtTimeInput = initialValues?.telAt ? toFormTime(initialValues.telAt) : "";
 
     return {
       visitAtDateInput,
@@ -204,14 +204,14 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
         <Field label="訪問日時" required={!values.telAppointment} error={errors.visitAtDateInput?.[0] ?? errors.visitAtTimeInput?.[0]}>
           <div className="flex gap-2">
             <input
+              type="date"
               className={inputClass}
-              placeholder="03/21"
               value={values.visitAtDateInput}
               onChange={(event) => setValues((prev) => ({ ...prev, visitAtDateInput: event.target.value }))}
             />
             <input
+              type="time"
               className={inputClass}
-              placeholder="10:00"
               value={values.visitAtTimeInput}
               onChange={(event) => setValues((prev) => ({ ...prev, visitAtTimeInput: event.target.value }))}
             />
@@ -222,14 +222,14 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
         <Field label="☎TEL日時" required error={errors.telAtDateInput?.[0] ?? errors.telAtTimeInput?.[0]}>
           <div className="flex gap-2">
             <input
+              type="date"
               className={inputClass}
-              placeholder="03/20"
               value={values.telAtDateInput}
               onChange={(event) => setValues((prev) => ({ ...prev, telAtDateInput: event.target.value }))}
             />
             <input
+              type="time"
               className={inputClass}
-              placeholder="12:00"
               value={values.telAtTimeInput}
               onChange={(event) => setValues((prev) => ({ ...prev, telAtTimeInput: event.target.value }))}
             />
@@ -336,11 +336,16 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
         </Field>
 
         {/* パネル年数 */}
-        <Field label="パネル年数" hint="〇年目">
+        <Field label="パネル年数" hint="〇年目　数字のみ入力">
           <input
             className={inputClass}
+            inputMode="numeric"
+            pattern="\d*"
             value={values.panelYears}
-            onChange={(event) => setValues((prev) => ({ ...prev, panelYears: event.target.value }))}
+            onChange={(event) => {
+              const v = event.target.value.replace(/[^\d]/g, "");
+              setValues((prev) => ({ ...prev, panelYears: v }));
+            }}
           />
         </Field>
 
