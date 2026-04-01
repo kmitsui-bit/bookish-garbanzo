@@ -21,6 +21,7 @@ const emptyValues: AppointmentFormInput = {
   telAtDateInput: getTomorrowDate(),
   telAtStartTimeInput: "18:00",
   telAtEndTimeInput: "20:00",
+  prevDayTelAtDateInput: "",
   prevDayTelAtStartTimeInput: "18:00",
   prevDayTelAtEndTimeInput: "20:00",
   age: "",
@@ -81,6 +82,7 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
     const telAtDateInput = initialValues?.telAt ? toFormDate(initialValues.telAt) : getTomorrowDate();
     const telAtStartTimeInput = initialValues?.telAt ? toFormTime(initialValues.telAt) : "18:00";
     const telAtEndTimeInput = initialValues?.telAtEnd ? toFormTime(initialValues.telAtEnd) : "20:00";
+    const prevDayTelAtDateInput = initialValues?.prevDayTelAt ? toFormDate(initialValues.prevDayTelAt) : "";
     const prevDayTelAtStartTimeInput = initialValues?.prevDayTelAt ? toFormTime(initialValues.prevDayTelAt) : "18:00";
     const prevDayTelAtEndTimeInput = initialValues?.prevDayTelAtEnd ? toFormTime(initialValues.prevDayTelAtEnd) : "20:00";
 
@@ -90,6 +92,7 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
       telAtDateInput,
       telAtStartTimeInput,
       telAtEndTimeInput,
+      prevDayTelAtDateInput,
       prevDayTelAtStartTimeInput,
       prevDayTelAtEndTimeInput,
       age: initialValues?.age ? String(initialValues.age) : "",
@@ -124,22 +127,6 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
   const submitUrl = mode === "create" ? "/api/appointments" : `/api/appointments/${appointmentId}`;
   const method = mode === "create" ? "POST" : "PATCH";
 
-  // 前日TEL日付（訪問日の1日前）
-  const prevDayTelDate = useMemo(() => {
-    if (!values.visitAtDateInput) return "";
-    try {
-      const d = new Date(values.visitAtDateInput + "T00:00:00");
-      const prev = new Date(d);
-      prev.setDate(prev.getDate() - 1);
-      const y = prev.getFullYear();
-      const m = String(prev.getMonth() + 1).padStart(2, "0");
-      const day = String(prev.getDate()).padStart(2, "0");
-      return `${y}/${m}/${day}`;
-    } catch {
-      return "";
-    }
-  }, [values.visitAtDateInput]);
-
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitting(true);
@@ -171,6 +158,15 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
 
   const dateTimeClass =
     "w-full appearance-auto rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100";
+
+  function toPreviousDateInput(dateInput: string) {
+    if (!dateInput) return "";
+    try {
+      return getDateMinusOne(new Date(`${dateInput}T00:00:00`));
+    } catch {
+      return "";
+    }
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5 rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
@@ -234,7 +230,13 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
               type="date"
               className={dateTimeClass}
               value={values.visitAtDateInput}
-              onChange={(event) => setValues((prev) => ({ ...prev, visitAtDateInput: event.target.value }))}
+              onChange={(event) =>
+                setValues((prev) => ({
+                  ...prev,
+                  visitAtDateInput: event.target.value,
+                  prevDayTelAtDateInput: toPreviousDateInput(event.target.value)
+                }))
+              }
             />
             <input
               type="time"
@@ -248,54 +250,57 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
         {/* 翌日TEL日時 */}
         <div className="md:col-span-2">
           <Field label="☎【翌日】TEL日時" required error={errors.telAtDateInput?.[0] ?? errors.telAtStartTimeInput?.[0]}>
-            <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 items-center">
+            <div className="space-y-2 sm:grid sm:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center sm:gap-2 sm:space-y-0">
               <input
                 type="date"
                 className={dateTimeClass}
                 value={values.telAtDateInput}
                 onChange={(event) => setValues((prev) => ({ ...prev, telAtDateInput: event.target.value }))}
               />
-              <input
-                type="time"
-                className={dateTimeClass}
-                value={values.telAtStartTimeInput}
-                onChange={(event) => setValues((prev) => ({ ...prev, telAtStartTimeInput: event.target.value }))}
-              />
-              <span className="text-slate-400 text-sm">-</span>
-              <input
-                type="time"
-                className={dateTimeClass}
-                value={values.telAtEndTimeInput}
-                onChange={(event) => setValues((prev) => ({ ...prev, telAtEndTimeInput: event.target.value }))}
-              />
+              <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:col-span-3">
+                <input
+                  type="time"
+                  className={dateTimeClass}
+                  value={values.telAtStartTimeInput}
+                  onChange={(event) => setValues((prev) => ({ ...prev, telAtStartTimeInput: event.target.value }))}
+                />
+                <span className="text-center text-sm text-slate-400">-</span>
+                <input
+                  type="time"
+                  className={dateTimeClass}
+                  value={values.telAtEndTimeInput}
+                  onChange={(event) => setValues((prev) => ({ ...prev, telAtEndTimeInput: event.target.value }))}
+                />
+              </div>
             </div>
           </Field>
         </div>
 
         {/* 前日TEL日時 */}
         <div className="md:col-span-2">
-          <Field label="☎【前日】TEL日時" hint="訪問日を入力すると日付が自動設定">
-            <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 items-center">
+          <Field label="☎【前日】TEL日時">
+            <div className="space-y-2 sm:grid sm:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center sm:gap-2 sm:space-y-0">
               <input
-                type="text"
+                type="date"
                 className={dateTimeClass}
-                value={prevDayTelDate}
-                readOnly
-                placeholder="訪問日を入力すると自動設定"
+                value={values.prevDayTelAtDateInput}
+                onChange={(event) => setValues((prev) => ({ ...prev, prevDayTelAtDateInput: event.target.value }))}
               />
-              <input
-                type="time"
-                className={dateTimeClass}
-                value={values.prevDayTelAtStartTimeInput}
-                onChange={(event) => setValues((prev) => ({ ...prev, prevDayTelAtStartTimeInput: event.target.value }))}
-              />
-              <span className="text-slate-400 text-sm">-</span>
-              <input
-                type="time"
-                className={dateTimeClass}
-                value={values.prevDayTelAtEndTimeInput}
-                onChange={(event) => setValues((prev) => ({ ...prev, prevDayTelAtEndTimeInput: event.target.value }))}
-              />
+              <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:col-span-3">
+                <input
+                  type="time"
+                  className={dateTimeClass}
+                  value={values.prevDayTelAtStartTimeInput}
+                  onChange={(event) => setValues((prev) => ({ ...prev, prevDayTelAtStartTimeInput: event.target.value }))}
+                />
+                <span className="text-center text-sm text-slate-400">-</span>
+                <input
+                  type="time"
+                  className={dateTimeClass}
+                  value={values.prevDayTelAtEndTimeInput}
+                  onChange={(event) => setValues((prev) => ({ ...prev, prevDayTelAtEndTimeInput: event.target.value }))}
+                />
+              </div>
             </div>
           </Field>
         </div>
@@ -353,6 +358,7 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
           <input
             className={inputClass}
             inputMode="numeric"
+            placeholder="10桁または11桁"
             value={values.phoneNumber}
             onChange={(event) => setValues((prev) => ({ ...prev, phoneNumber: event.target.value }))}
           />
@@ -382,6 +388,7 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
             className={inputClass}
             inputMode="numeric"
             pattern="\d*"
+            placeholder="〇年目"
             value={values.panelYears}
             onChange={(event) => {
               const v = event.target.value.replace(/[^\d]/g, "");
@@ -390,7 +397,7 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
           />
         </Field>
 
-        <Field label="給湯設備">
+        <Field label="給湯設備名">
           <input
             className={inputClass}
             placeholder="ガス給湯器、エネファーム、エコキュートなど"

@@ -12,6 +12,7 @@ export const appointmentFormSchema = z
     telAtDateInput: z.string().min(1, "TEL日（月/日）は必須です"),
     telAtStartTimeInput: z.string().min(1, "TEL開始時間は必須です"),
     telAtEndTimeInput: z.string().min(1, "TEL終了時間は必須です"),
+    prevDayTelAtDateInput: z.string().optional().default(""),
     prevDayTelAtStartTimeInput: z.string().optional().default("18:00"),
     prevDayTelAtEndTimeInput: z.string().optional().default("20:00"),
     age: z.string().min(1, "年齢は必須です").regex(digitsRegex, "年齢は数字のみで入力してください"),
@@ -22,7 +23,10 @@ export const appointmentFormSchema = z
       .string()
       .min(1, "名前は必須です")
       .regex(kataKanaRegex, "名前はカタカナで入力してください"),
-    phoneNumber: z.string().min(1, "電話番号は必須です").regex(digitsRegex, "電話番号は数字のみで入力してください"),
+    phoneNumber: z
+      .string()
+      .min(1, "電話番号は必須です")
+      .regex(/^\d{10,11}$/, "電話番号は10桁または11桁の数字で入力してください"),
     electricityCostHigh: z.string().optional().default(""),
     electricityCostLow: z.string().optional().default(""),
     sellPowerHigh: z.string().optional().default(""),
@@ -75,6 +79,18 @@ export const appointmentFormSchema = z
         ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["telAtDateInput"], message: "TEL日時を確認してください" });
       }
     }
+
+    if (data.prevDayTelAtDateInput && data.prevDayTelAtStartTimeInput) {
+      if (!parseDateTimeInput(data.prevDayTelAtDateInput, data.prevDayTelAtStartTimeInput)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["prevDayTelAtDateInput"], message: "前日TEL日時を確認してください" });
+      }
+    }
+
+    if (data.prevDayTelAtDateInput && data.prevDayTelAtEndTimeInput) {
+      if (!parseDateTimeInput(data.prevDayTelAtDateInput, data.prevDayTelAtEndTimeInput)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["prevDayTelAtDateInput"], message: "前日TEL終了日時を確認してください" });
+      }
+    }
   });
 
 export type AppointmentFormInput = z.input<typeof appointmentFormSchema>;
@@ -120,7 +136,7 @@ export function parseAppointmentPayload(input: unknown) {
 
   // 前日TEL: visitAt - 1日
   const baseDate = visitAt ?? telAt;
-  const prevDayDateStr = getDateMinusOne(baseDate);
+  const prevDayDateStr = parsed.data.prevDayTelAtDateInput?.trim() || getDateMinusOne(baseDate);
   const prevDayTelAt = parsed.data.prevDayTelAtStartTimeInput
     ? parseDateTimeInput(prevDayDateStr, parsed.data.prevDayTelAtStartTimeInput)
     : null;

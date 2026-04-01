@@ -40,7 +40,7 @@ export function AppShell({
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition",
+                  "shrink-0 whitespace-nowrap rounded-full px-3 py-2 text-xs font-medium transition sm:px-4 sm:text-sm",
                   currentPath === link.href
                     ? "bg-slate-900 text-white"
                     : "bg-slate-100 text-slate-700 hover:bg-slate-200"
@@ -51,7 +51,7 @@ export function AppShell({
             ))}
             <button
               onClick={handleLogout}
-              className="shrink-0 whitespace-nowrap rounded-full bg-slate-100 px-4 py-2 text-sm font-medium text-slate-500 transition hover:bg-rose-100 hover:text-rose-600"
+              className="hidden shrink-0 whitespace-nowrap rounded-full bg-slate-100 px-4 py-2 text-sm font-medium text-slate-500 transition hover:bg-rose-100 hover:text-rose-600 sm:inline-flex"
             >
               ログアウト
             </button>
