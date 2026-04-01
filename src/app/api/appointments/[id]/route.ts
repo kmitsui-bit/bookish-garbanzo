@@ -64,6 +64,8 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       specialConditions: parsed.data.specialConditions,
       detail: parsed.data.detail,
       appointmentType: parsed.data.appointmentType,
+      appointmentTypeOther: parsed.data.appointmentTypeOther,
+      salesName: parsed.data.salesName,
       selfCall: parsed.data.selfCall,
       telAppointment: parsed.data.telAppointment,
       telReminderEnabled: parsed.data.telReminderEnabled,

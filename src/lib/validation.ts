@@ -34,7 +34,9 @@ export const appointmentFormSchema = z
     detail: z.string().optional().default(""),
     selfCall: z.boolean().optional().default(false),
     telAppointment: z.boolean().optional().default(false),
-    appointmentType: z.enum(["蓄電池単体", "創蓄☀️"]).default("蓄電池単体")
+    appointmentType: z.enum(["蓄電池単体", "創蓄☀️", "その他"]).default("蓄電池単体"),
+    appointmentTypeOther: z.string().optional().default(""),
+    salesName: z.string().min(1, "営業マン名は必須です")
   })
   .superRefine((data, ctx) => {
     const visitDateInput = data.visitAtDateInput?.trim() ?? "";
@@ -176,7 +178,8 @@ export function parseAppointmentPayload(input: unknown) {
       age: Number(parsed.data.age),
       visitAt: visitAt ?? telAt,
       telAt,
-      telReminderEnabled: !parsed.data.selfCall && !parsed.data.telAppointment
+      telReminderEnabled: !parsed.data.selfCall && !parsed.data.telAppointment,
+      salesName: parsed.data.salesName.trim()
     }
   };
 }

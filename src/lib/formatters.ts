@@ -9,43 +9,33 @@ function line(label: string, value: string | null | undefined) {
   return value ? `${label}：${value}` : null;
 }
 
+function highLow(label: string, high: string | null | undefined, low: string | null | undefined) {
+  if (high && low) return `${label}：${high}-${low}`;
+  if (high) return `${label}：${high}`;
+  if (low) return `${label}：${low}`;
+  return null;
+}
+
 export function buildFormSubmittedMessage(appointment: Appointment) {
-  const typeLabel = appointment.appointmentType ? `【${appointment.appointmentType}】` : "";
-  const header = `${typeLabel}${formatMonthDayTime(appointment.visitAt)} ${appointment.age}${appointment.gender} ${withHonorific(appointment.nameKana)}`;
+  const typeLabel = appointment.appointmentType === "その他"
+    ? appointment.appointmentTypeOther || "その他"
+    : appointment.appointmentType || "蓄電池単体";
 
-  const electricityLines =
-    appointment.electricityCostHigh || appointment.electricityCostLow
-      ? [
-          line("電気代（High）", appointment.electricityCostHigh),
-          line("電気代（Low）", appointment.electricityCostLow)
-        ].filter(Boolean).join("\n")
-      : line("電気代", appointment.electricityCost);
+  const salesName = appointment.salesName || "";
 
-  const sellPowerLines =
-    appointment.sellPowerHigh || appointment.sellPowerLow
-      ? [
-          line("売電（High）", appointment.sellPowerHigh),
-          line("売電（Low）", appointment.sellPowerLow)
-        ].filter(Boolean).join("\n")
-      : line("売電", appointment.sellPower);
-
-  const gasCostLines =
-    appointment.gasCostHigh || appointment.gasCostLow
-      ? [
-          line("ガス代（High）", appointment.gasCostHigh),
-          line("ガス代（Low）", appointment.gasCostLow)
-        ].filter(Boolean).join("\n")
-      : null;
+  const line1 = `【${typeLabel}】${salesName}アポ`;
+  const line2 = `${formatMonthDayTime(appointment.visitAt)} ${appointment.age}${appointment.gender} ${withHonorific(appointment.nameKana)}`;
 
   const parts = [
-    header,
+    line1,
+    line2,
     "",
     `電話番号：${appointment.phoneNumber}`,
     `☎TEL日時：${formatMonthDayTime(appointment.telAt)}`,
     "",
-    electricityLines,
-    sellPowerLines,
-    gasCostLines,
+    highLow("電気代", appointment.electricityCostHigh, appointment.electricityCostLow),
+    highLow("売電", appointment.sellPowerHigh, appointment.sellPowerLow),
+    highLow("ガス代", appointment.gasCostHigh, appointment.gasCostLow),
     appointment.panelYears ? `パネル年数：${appointment.panelYears}年目` : null,
     line("給湯設備", appointment.gasOrEcoCute),
     line("ガス使用設備", appointment.gasUsageEquipment),
@@ -58,7 +48,8 @@ export function buildFormSubmittedMessage(appointment: Appointment) {
 }
 
 export function buildTelReminderMessage(appointment: Appointment) {
-  return `${formatMonthDayTime(appointment.telAt)} ーーアポ ${withHonorific(appointment.nameKana)} TELの時間だよ！`;
+  const salesName = appointment.salesName || "";
+  return `${formatMonthDayTime(appointment.telAt)} ーー${salesName}アポ ${withHonorific(appointment.nameKana)} TELの時間だよ！`;
 }
 
 export function notificationLabel(type: NotificationLog["type"]) {

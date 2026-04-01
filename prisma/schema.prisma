@@ -30,6 +30,8 @@ model Appointment {
   gasCostLow               String?
   gasUsageEquipment        String?
   appointmentType          String            @default("蓄電池単体")
+  appointmentTypeOther     String?
+  salesName                String            @default("")
   selfCall                 Boolean           @default(false)
   telAppointment           Boolean           @default(false)
   telReminderEnabled       Boolean           @default(true)

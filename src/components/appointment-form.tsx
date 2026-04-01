@@ -37,7 +37,9 @@ const emptyValues: AppointmentFormInput = {
   detail: "",
   selfCall: false,
   telAppointment: false,
-  appointmentType: "蓄電池単体"
+  appointmentType: "蓄電池単体",
+  appointmentTypeOther: "",
+  salesName: ""
 };
 
 function Field({
@@ -97,7 +99,9 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
       detail: initialValues?.detail ?? "",
       selfCall: initialValues?.selfCall ?? false,
       telAppointment: initialValues?.telAppointment ?? false,
-      appointmentType: (initialValues?.appointmentType as "蓄電池単体" | "創蓄☀️") ?? "蓄電池単体"
+      appointmentType: (initialValues?.appointmentType as "蓄電池単体" | "創蓄☀️" | "その他") ?? "蓄電池単体",
+      appointmentTypeOther: initialValues?.appointmentTypeOther ?? "",
+      salesName: initialValues?.salesName ?? ""
     };
   }, [initialValues]);
 
@@ -157,6 +161,16 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
         </div>
       </label>
 
+      {/* 営業マン名 */}
+      <Field label="営業マン名" hint="漢字で入力" required error={errors.salesName?.[0]}>
+        <input
+          className={inputClass}
+          placeholder="例：三井"
+          value={values.salesName}
+          onChange={(event) => setValues((prev) => ({ ...prev, salesName: event.target.value }))}
+        />
+      </Field>
+
       {/* 種別プルダウン */}
       <label className="space-y-2">
         <span className="text-sm font-medium text-slate-800">種別</span>
@@ -164,13 +178,26 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
           className={inputClass}
           value={values.appointmentType}
           onChange={(event) =>
-            setValues((prev) => ({ ...prev, appointmentType: event.target.value as "蓄電池単体" | "創蓄☀️" }))
+            setValues((prev) => ({ ...prev, appointmentType: event.target.value as "蓄電池単体" | "創蓄☀️" | "その他" }))
           }
         >
           <option value="蓄電池単体">蓄電池単体</option>
           <option value="創蓄☀️">創蓄☀️</option>
+          <option value="その他">その他</option>
         </select>
       </label>
+
+      {/* その他の場合の自由記入欄 */}
+      {values.appointmentType === "その他" && (
+        <Field label="種別（自由記入）" required error={errors.appointmentTypeOther?.[0]}>
+          <input
+            className={inputClass}
+            placeholder="種別を入力してください"
+            value={values.appointmentTypeOther}
+            onChange={(event) => setValues((prev) => ({ ...prev, appointmentTypeOther: event.target.value }))}
+          />
+        </Field>
+      )}
 
       <div className="grid gap-5 md:grid-cols-2">
         {/* 訪問日時 */}
@@ -225,7 +252,7 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
             className={inputClass}
             value={values.gender}
             onChange={(event) =>
-              setValues((prev) => ({ ...prev, gender: event.target.value as "A" | "B" | "AB" | "C" }))
+                      setValues((prev) => ({ ...prev, gender: event.target.value as "A" | "B" | "AB" | "C" }))
             }
           >
             <option value="A">A</option>
