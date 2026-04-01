@@ -49,7 +49,7 @@ export function buildFormSubmittedMessage(appointment: Appointment) {
 
 export function buildTelReminderMessage(appointment: Appointment) {
   const salesName = appointment.salesName || "";
-  return `${formatMonthDayTime(appointment.telAt)} ーー${salesName}アポ ${withHonorific(appointment.nameKana)} TELの時間だよ！`;
+  return `${formatMonthDayTime(appointment.telAt)} ${salesName}アポ ${withHonorific(appointment.nameKana)} TELの時間だよ！`;
 }
 
 export function notificationLabel(type: NotificationLog["type"]) {
