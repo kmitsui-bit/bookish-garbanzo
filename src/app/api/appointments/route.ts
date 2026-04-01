@@ -30,6 +30,9 @@ export async function POST(request: Request) {
     data: {
       visitAt: parsed.data.visitAt,
       telAt: parsed.data.telAt,
+      telAtEnd: parsed.data.telAtEnd,
+      prevDayTelAt: parsed.data.prevDayTelAt,
+      prevDayTelAtEnd: parsed.data.prevDayTelAtEnd,
       age: parsed.data.age,
       gender: parsed.data.gender,
       nameKana: parsed.data.nameKana.trim(),

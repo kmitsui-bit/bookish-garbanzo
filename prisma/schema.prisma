@@ -29,6 +29,9 @@ model Appointment {
   gasCostHigh              String?
   gasCostLow               String?
   gasUsageEquipment        String?
+  telAtEnd                 DateTime?
+  prevDayTelAt             DateTime?
+  prevDayTelAtEnd          DateTime?
   appointmentType          String            @default("蓄電池単体")
   appointmentTypeOther     String?
   salesName                String            @default("")

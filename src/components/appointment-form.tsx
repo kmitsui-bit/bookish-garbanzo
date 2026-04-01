@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Appointment } from "@prisma/client";
-import { toFormDate, toFormTime } from "@/lib/date";
+import { toFormDate, toFormTime, getTomorrowDate, getDateMinusOne } from "@/lib/date";
 import type { AppointmentFormInput } from "@/lib/validation";
 import { cn } from "@/lib/utils";
 
@@ -18,8 +18,11 @@ type FieldErrors = Partial<Record<keyof AppointmentFormInput, string[]>>;
 const emptyValues: AppointmentFormInput = {
   visitAtDateInput: "",
   visitAtTimeInput: "",
-  telAtDateInput: "",
-  telAtTimeInput: "",
+  telAtDateInput: getTomorrowDate(),
+  telAtStartTimeInput: "18:00",
+  telAtEndTimeInput: "20:00",
+  prevDayTelAtStartTimeInput: "18:00",
+  prevDayTelAtEndTimeInput: "20:00",
   age: "",
   gender: "A",
   nameKana: "",
@@ -75,14 +78,20 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
   const initialForm = useMemo<AppointmentFormInput>(() => {
     const visitAtDateInput = initialValues?.visitAt ? toFormDate(initialValues.visitAt) : "";
     const visitAtTimeInput = initialValues?.visitAt ? toFormTime(initialValues.visitAt) : "";
-    const telAtDateInput = initialValues?.telAt ? toFormDate(initialValues.telAt) : "";
-    const telAtTimeInput = initialValues?.telAt ? toFormTime(initialValues.telAt) : "";
+    const telAtDateInput = initialValues?.telAt ? toFormDate(initialValues.telAt) : getTomorrowDate();
+    const telAtStartTimeInput = initialValues?.telAt ? toFormTime(initialValues.telAt) : "18:00";
+    const telAtEndTimeInput = initialValues?.telAtEnd ? toFormTime(initialValues.telAtEnd) : "20:00";
+    const prevDayTelAtStartTimeInput = initialValues?.prevDayTelAt ? toFormTime(initialValues.prevDayTelAt) : "18:00";
+    const prevDayTelAtEndTimeInput = initialValues?.prevDayTelAtEnd ? toFormTime(initialValues.prevDayTelAtEnd) : "20:00";
 
     return {
       visitAtDateInput,
       visitAtTimeInput,
       telAtDateInput,
-      telAtTimeInput,
+      telAtStartTimeInput,
+      telAtEndTimeInput,
+      prevDayTelAtStartTimeInput,
+      prevDayTelAtEndTimeInput,
       age: initialValues?.age ? String(initialValues.age) : "",
       gender: (initialValues?.gender as "A" | "B" | "AB" | "C") ?? "A",
       nameKana: initialValues?.nameKana ?? "",
@@ -115,6 +124,22 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
   const submitUrl = mode === "create" ? "/api/appointments" : `/api/appointments/${appointmentId}`;
   const method = mode === "create" ? "POST" : "PATCH";
 
+  // 前日TEL日付（訪問日の1日前）
+  const prevDayTelDate = useMemo(() => {
+    if (!values.visitAtDateInput) return "";
+    try {
+      const d = new Date(values.visitAtDateInput + "T00:00:00");
+      const prev = new Date(d);
+      prev.setDate(prev.getDate() - 1);
+      const y = prev.getFullYear();
+      const m = String(prev.getMonth() + 1).padStart(2, "0");
+      const day = String(prev.getDate()).padStart(2, "0");
+      return `${y}/${m}/${day}`;
+    } catch {
+      return "";
+    }
+  }, [values.visitAtDateInput]);
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitting(true);
@@ -123,9 +148,7 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
 
     const response = await fetch(submitUrl, {
       method,
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(values)
     });
 
@@ -192,7 +215,6 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
         </select>
       </label>
 
-      {/* その他の場合の自由記入欄 */}
       {values.appointmentType === "その他" && (
         <Field label="種別（自由記入）" required error={errors.appointmentTypeOther?.[0]}>
           <input
@@ -223,9 +245,9 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
           </div>
         </Field>
 
-        {/* TEL日時 */}
-        <Field label="☎TEL日時" required error={errors.telAtDateInput?.[0] ?? errors.telAtTimeInput?.[0]}>
-          <div className="flex gap-2">
+        {/* 翌日TEL日時 */}
+        <Field label="☎【翌日】TEL日時" required error={errors.telAtDateInput?.[0] ?? errors.telAtStartTimeInput?.[0]}>
+          <div className="flex gap-2 items-center">
             <input
               type="date"
               className={dateTimeClass}
@@ -235,11 +257,39 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
             <input
               type="time"
               className={dateTimeClass}
-              value={values.telAtTimeInput}
-              onChange={(event) => setValues((prev) => ({ ...prev, telAtTimeInput: event.target.value }))}
+              value={values.telAtStartTimeInput}
+              onChange={(event) => setValues((prev) => ({ ...prev, telAtStartTimeInput: event.target.value }))}
+            />
+            <span className="text-slate-400 text-sm shrink-0">-</span>
+            <input
+              type="time"
+              className={dateTimeClass}
+              value={values.telAtEndTimeInput}
+              onChange={(event) => setValues((prev) => ({ ...prev, telAtEndTimeInput: event.target.value }))}
             />
           </div>
         </Field>
+
+        {/* 前日TEL日時 */}
+        <div className="md:col-span-2">
+          <Field label="☎【前日】TEL日時" hint={prevDayTelDate ? `日付：${prevDayTelDate}（訪問日前日）` : "訪問日を入力すると自動設定"}>
+            <div className="flex gap-2 items-center">
+              <input
+                type="time"
+                className={dateTimeClass}
+                value={values.prevDayTelAtStartTimeInput}
+                onChange={(event) => setValues((prev) => ({ ...prev, prevDayTelAtStartTimeInput: event.target.value }))}
+              />
+              <span className="text-slate-400 text-sm shrink-0">-</span>
+              <input
+                type="time"
+                className={dateTimeClass}
+                value={values.prevDayTelAtEndTimeInput}
+                onChange={(event) => setValues((prev) => ({ ...prev, prevDayTelAtEndTimeInput: event.target.value }))}
+              />
+            </div>
+          </Field>
+        </div>
 
         {/* 年齢 */}
         <Field label="年齢" required error={errors.age?.[0]}>
@@ -257,7 +307,7 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
             className={inputClass}
             value={values.gender}
             onChange={(event) =>
-                      setValues((prev) => ({ ...prev, gender: event.target.value as "A" | "B" | "AB" | "C" }))
+              setValues((prev) => ({ ...prev, gender: event.target.value as "A" | "B" | "AB" | "C" }))
             }
           >
             <option value="A">A</option>
@@ -267,7 +317,6 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
           </select>
         </Field>
 
-        {/* 性別CのときC詳細欄 */}
         {values.gender === "C" && (
           <div className="md:col-span-2">
             <Field label="C 詳細">
@@ -300,61 +349,25 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
           />
         </Field>
 
-        {/* 電気代 High */}
         <Field label="電気代（High）">
-          <input
-            className={inputClass}
-            value={values.electricityCostHigh}
-            onChange={(event) => setValues((prev) => ({ ...prev, electricityCostHigh: event.target.value }))}
-          />
+          <input className={inputClass} value={values.electricityCostHigh} onChange={(event) => setValues((prev) => ({ ...prev, electricityCostHigh: event.target.value }))} />
         </Field>
-
-        {/* 電気代 Low */}
         <Field label="電気代（Low）">
-          <input
-            className={inputClass}
-            value={values.electricityCostLow}
-            onChange={(event) => setValues((prev) => ({ ...prev, electricityCostLow: event.target.value }))}
-          />
+          <input className={inputClass} value={values.electricityCostLow} onChange={(event) => setValues((prev) => ({ ...prev, electricityCostLow: event.target.value }))} />
         </Field>
-
-        {/* 売電 High */}
         <Field label="売電（High）">
-          <input
-            className={inputClass}
-            value={values.sellPowerHigh}
-            onChange={(event) => setValues((prev) => ({ ...prev, sellPowerHigh: event.target.value }))}
-          />
+          <input className={inputClass} value={values.sellPowerHigh} onChange={(event) => setValues((prev) => ({ ...prev, sellPowerHigh: event.target.value }))} />
         </Field>
-
-        {/* 売電 Low */}
         <Field label="売電（Low）">
-          <input
-            className={inputClass}
-            value={values.sellPowerLow}
-            onChange={(event) => setValues((prev) => ({ ...prev, sellPowerLow: event.target.value }))}
-          />
+          <input className={inputClass} value={values.sellPowerLow} onChange={(event) => setValues((prev) => ({ ...prev, sellPowerLow: event.target.value }))} />
         </Field>
-
-        {/* ガス代 High */}
         <Field label="ガス代（High）" hint="任意">
-          <input
-            className={inputClass}
-            value={values.gasCostHigh}
-            onChange={(event) => setValues((prev) => ({ ...prev, gasCostHigh: event.target.value }))}
-          />
+          <input className={inputClass} value={values.gasCostHigh} onChange={(event) => setValues((prev) => ({ ...prev, gasCostHigh: event.target.value }))} />
         </Field>
-
-        {/* ガス代 Low */}
         <Field label="ガス代（Low）" hint="任意">
-          <input
-            className={inputClass}
-            value={values.gasCostLow}
-            onChange={(event) => setValues((prev) => ({ ...prev, gasCostLow: event.target.value }))}
-          />
+          <input className={inputClass} value={values.gasCostLow} onChange={(event) => setValues((prev) => ({ ...prev, gasCostLow: event.target.value }))} />
         </Field>
 
-        {/* パネル年数 */}
         <Field label="パネル年数" hint="〇年目　数字のみ入力">
           <input
             className={inputClass}
@@ -368,7 +381,6 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
           />
         </Field>
 
-        {/* 給湯設備 */}
         <Field label="給湯設備">
           <input
             className={inputClass}
@@ -378,7 +390,6 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
           />
         </Field>
 
-        {/* ガス使用設備 */}
         <div className="md:col-span-2">
           <Field label="ガス使用設備">
             <input

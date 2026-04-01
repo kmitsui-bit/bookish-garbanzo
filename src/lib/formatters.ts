@@ -1,5 +1,5 @@
 import type { Appointment, NotificationLog } from "@prisma/client";
-import { formatMonthDayTime } from "@/lib/date";
+import { formatMonthDayTime, formatTimeOnly } from "@/lib/date";
 
 export function withHonorific(nameKana: string) {
   return nameKana.endsWith("様") ? nameKana : `${nameKana}様`;
@@ -16,6 +16,13 @@ function highLow(label: string, high: string | null | undefined, low: string | n
   return null;
 }
 
+function telTimeRange(start: Date | null | undefined, end: Date | null | undefined): string {
+  if (!start) return "";
+  const s = formatTimeOnly(start);
+  const e = end ? formatTimeOnly(end) : "";
+  return e ? `${s}-${e}` : s;
+}
+
 export function buildFormSubmittedMessage(appointment: Appointment) {
   const typeLabel = appointment.appointmentType === "その他"
     ? appointment.appointmentTypeOther || "その他"
@@ -26,12 +33,21 @@ export function buildFormSubmittedMessage(appointment: Appointment) {
   const line1 = `【${typeLabel}】${salesName}アポ`;
   const line2 = `${formatMonthDayTime(appointment.visitAt)} ${appointment.age}${appointment.gender} ${withHonorific(appointment.nameKana)}`;
 
+  const telNextDay = appointment.telAt
+    ? `☎【翌日】TEL日時：${formatMonthDayTime(appointment.telAt)} ${telTimeRange(appointment.telAt, appointment.telAtEnd)}`
+    : null;
+
+  const telPrevDay = appointment.prevDayTelAt
+    ? `☎【前日】TEL日時：${formatMonthDayTime(appointment.prevDayTelAt)} ${telTimeRange(appointment.prevDayTelAt, appointment.prevDayTelAtEnd)}`
+    : null;
+
   const parts = [
     line1,
     line2,
     "",
     `電話番号：${appointment.phoneNumber}`,
-    `☎TEL日時：${formatMonthDayTime(appointment.telAt)}`,
+    telNextDay,
+    telPrevDay,
     "",
     highLow("電気代", appointment.electricityCostHigh, appointment.electricityCostLow),
     highLow("売電", appointment.sellPowerHigh, appointment.sellPowerLow),
@@ -49,7 +65,8 @@ export function buildFormSubmittedMessage(appointment: Appointment) {
 
 export function buildTelReminderMessage(appointment: Appointment) {
   const salesName = appointment.salesName || "";
-  return `${formatMonthDayTime(appointment.telAt)} ${salesName}アポ ${withHonorific(appointment.nameKana)} TELの時間だよ！`;
+  const timeRange = telTimeRange(appointment.telAt, appointment.telAtEnd);
+  return `${formatMonthDayTime(appointment.telAt)} ${timeRange} ${salesName}アポ ${withHonorific(appointment.nameKana)} TELの時間だよ！`;
 }
 
 export function notificationLabel(type: NotificationLog["type"]) {

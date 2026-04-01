@@ -1,5 +1,5 @@
 import { formatInTimeZone, fromZonedTime, toZonedTime } from "date-fns-tz";
-import { isValid } from "date-fns";
+import { isValid, addDays } from "date-fns";
 import { env } from "@/lib/env";
 
 const DATE_TIME_PATTERN = /^(0?[1-9]|1[0-2])\/(0?[1-9]|[12]\d|3[01])\s([01]?\d|2[0-3]):([0-5]\d)$/;
@@ -57,6 +57,19 @@ export function parseDateTimeInput(dateStr: string, timeStr: string, timezone = 
   const zoned = fromZonedTime(isoLike, timezone);
   if (!isValid(zoned)) return null;
   return zoned;
+}
+
+export function getTomorrowDate(timezone = env.timezone) {
+  return formatInTimeZone(addDays(new Date(), 1), timezone, "yyyy-MM-dd");
+}
+
+export function getDateMinusOne(date: Date, timezone = env.timezone) {
+  return formatInTimeZone(addDays(date, -1), timezone, "yyyy-MM-dd");
+}
+
+export function formatTimeOnly(value: Date | string, timezone = env.timezone) {
+  const date = typeof value === "string" ? new Date(value) : value;
+  return formatInTimeZone(date, timezone, "H:mm");
 }
 
 export function formatCreatedAt(value: Date | string, timezone = env.timezone) {

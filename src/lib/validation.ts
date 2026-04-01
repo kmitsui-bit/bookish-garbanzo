@@ -1,9 +1,8 @@
 import { z } from "zod";
-import { parseDateTimeInput } from "@/lib/date";
+import { parseDateTimeInput, getDateMinusOne } from "@/lib/date";
 
 const kataKanaRegex = /^[ァ-ヶー　\s]+$/;
 const digitsRegex = /^\d+$/;
-const datePattern = /^\d{4}-\d{2}-\d{2}$/;
 const timePattern = /^([01]?\d|2[0-3]):([0-5]\d)$/;
 
 export const appointmentFormSchema = z
@@ -11,7 +10,10 @@ export const appointmentFormSchema = z
     visitAtDateInput: z.string().optional().default(""),
     visitAtTimeInput: z.string().optional().default(""),
     telAtDateInput: z.string().min(1, "TEL日（月/日）は必須です"),
-    telAtTimeInput: z.string().min(1, "TEL時間（HH:mm）は必須です"),
+    telAtStartTimeInput: z.string().min(1, "TEL開始時間は必須です"),
+    telAtEndTimeInput: z.string().min(1, "TEL終了時間は必須です"),
+    prevDayTelAtStartTimeInput: z.string().optional().default("18:00"),
+    prevDayTelAtEndTimeInput: z.string().optional().default("20:00"),
     age: z.string().min(1, "年齢は必須です").regex(digitsRegex, "年齢は数字のみで入力してください"),
     gender: z.enum(["A", "B", "AB", "C"], {
       errorMap: () => ({ message: "性別を選択してください" })
@@ -62,11 +64,14 @@ export const appointmentFormSchema = z
     if (!data.telAtDateInput) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["telAtDateInput"], message: "TEL日は必須です" });
     }
-    if (!data.telAtTimeInput) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["telAtTimeInput"], message: "TEL時間は必須です" });
+    if (!timePattern.test(data.telAtStartTimeInput)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["telAtStartTimeInput"], message: "TEL開始時間はHH:mm形式で入力してください" });
     }
-    if (data.telAtDateInput && data.telAtTimeInput) {
-      if (!parseDateTimeInput(data.telAtDateInput, data.telAtTimeInput)) {
+    if (!timePattern.test(data.telAtEndTimeInput)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["telAtEndTimeInput"], message: "TEL終了時間はHH:mm形式で入力してください" });
+    }
+    if (data.telAtDateInput && data.telAtStartTimeInput) {
+      if (!parseDateTimeInput(data.telAtDateInput, data.telAtStartTimeInput)) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["telAtDateInput"], message: "TEL日時を確認してください" });
       }
     }
@@ -88,16 +93,15 @@ export function parseAppointmentPayload(input: unknown) {
       ? parseDateTimeInput(visitAtDateInput, visitAtTimeInput)
       : null;
 
-  const telAt = parseDateTimeInput(parsed.data.telAtDateInput, parsed.data.telAtTimeInput);
+  const telAt = parseDateTimeInput(parsed.data.telAtDateInput, parsed.data.telAtStartTimeInput);
+  const telAtEnd = parseDateTimeInput(parsed.data.telAtDateInput, parsed.data.telAtEndTimeInput);
 
   if (!parsed.data.telAppointment && !visitAt) {
     return {
       success: false as const,
       error: {
         flatten: () => ({
-          fieldErrors: {
-            visitAtDateInput: ["訪問日時を確認してください"]
-          }
+          fieldErrors: { visitAtDateInput: ["訪問日時を確認してください"] }
         })
       }
     };
@@ -108,13 +112,21 @@ export function parseAppointmentPayload(input: unknown) {
       success: false as const,
       error: {
         flatten: () => ({
-          fieldErrors: {
-            telAtDateInput: ["TEL日時を確認してください"]
-          }
+          fieldErrors: { telAtDateInput: ["TEL日時を確認してください"] }
         })
       }
     };
   }
+
+  // 前日TEL: visitAt - 1日
+  const baseDate = visitAt ?? telAt;
+  const prevDayDateStr = getDateMinusOne(baseDate);
+  const prevDayTelAt = parsed.data.prevDayTelAtStartTimeInput
+    ? parseDateTimeInput(prevDayDateStr, parsed.data.prevDayTelAtStartTimeInput)
+    : null;
+  const prevDayTelAtEnd = parsed.data.prevDayTelAtEndTimeInput
+    ? parseDateTimeInput(prevDayDateStr, parsed.data.prevDayTelAtEndTimeInput)
+    : null;
 
   return {
     success: true as const,
@@ -123,6 +135,9 @@ export function parseAppointmentPayload(input: unknown) {
       age: Number(parsed.data.age),
       visitAt: visitAt ?? telAt,
       telAt,
+      telAtEnd,
+      prevDayTelAt,
+      prevDayTelAtEnd,
       telReminderEnabled: !parsed.data.selfCall && !parsed.data.telAppointment,
       salesName: parsed.data.salesName.trim()
     }
