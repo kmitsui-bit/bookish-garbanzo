@@ -161,7 +161,7 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
           className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
         />
         <div>
-          <p className="text-sm font-medium text-slate-900">テレアポ</p>
+          <p className="text-sm font-medium text-slate-900">テレアポ（自分でTEL）</p>
           <p className="text-xs text-slate-500">ON の場合は 5分前のTEL通知対象から除外されます</p>
         </div>
       </label>
@@ -406,19 +406,6 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
           onChange={(event) => setValues((prev) => ({ ...prev, detail: event.target.value }))}
         />
       </Field>
-
-      <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-        <input
-          type="checkbox"
-          checked={values.selfCall}
-          onChange={(event) => setValues((prev) => ({ ...prev, selfCall: event.target.checked }))}
-          className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
-        />
-        <div>
-          <p className="text-sm font-medium text-slate-900">自分でTEL</p>
-          <p className="text-xs text-slate-500">ON の場合は 5分前のTEL通知対象から除外されます</p>
-        </div>
-      </label>
 
       {message ? (
         <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">{message}</div>
