@@ -246,41 +246,43 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
         </Field>
 
         {/* 翌日TEL日時 */}
-        <Field label="☎【翌日】TEL日時" required error={errors.telAtDateInput?.[0] ?? errors.telAtStartTimeInput?.[0]}>
-          <div className="flex gap-2 items-center">
-            <input
-              type="date"
-              className={dateTimeClass}
-              value={values.telAtDateInput}
-              onChange={(event) => setValues((prev) => ({ ...prev, telAtDateInput: event.target.value }))}
-            />
-            <input
-              type="time"
-              className={dateTimeClass}
-              value={values.telAtStartTimeInput}
-              onChange={(event) => setValues((prev) => ({ ...prev, telAtStartTimeInput: event.target.value }))}
-            />
-            <span className="text-slate-400 text-sm shrink-0">-</span>
-            <input
-              type="time"
-              className={dateTimeClass}
-              value={values.telAtEndTimeInput}
-              onChange={(event) => setValues((prev) => ({ ...prev, telAtEndTimeInput: event.target.value }))}
-            />
-          </div>
-        </Field>
+        <div className="md:col-span-2">
+          <Field label="☎【翌日】TEL日時" required error={errors.telAtDateInput?.[0] ?? errors.telAtStartTimeInput?.[0]}>
+            <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 items-center">
+              <input
+                type="date"
+                className={dateTimeClass}
+                value={values.telAtDateInput}
+                onChange={(event) => setValues((prev) => ({ ...prev, telAtDateInput: event.target.value }))}
+              />
+              <input
+                type="time"
+                className={dateTimeClass}
+                value={values.telAtStartTimeInput}
+                onChange={(event) => setValues((prev) => ({ ...prev, telAtStartTimeInput: event.target.value }))}
+              />
+              <span className="text-slate-400 text-sm">-</span>
+              <input
+                type="time"
+                className={dateTimeClass}
+                value={values.telAtEndTimeInput}
+                onChange={(event) => setValues((prev) => ({ ...prev, telAtEndTimeInput: event.target.value }))}
+              />
+            </div>
+          </Field>
+        </div>
 
         {/* 前日TEL日時 */}
         <div className="md:col-span-2">
           <Field label="☎【前日】TEL日時" hint={prevDayTelDate ? `日付：${prevDayTelDate}（訪問日前日）` : "訪問日を入力すると自動設定"}>
-            <div className="flex gap-2 items-center">
+            <div className="grid grid-cols-[1fr_auto_1fr] gap-2 items-center">
               <input
                 type="time"
                 className={dateTimeClass}
                 value={values.prevDayTelAtStartTimeInput}
                 onChange={(event) => setValues((prev) => ({ ...prev, prevDayTelAtStartTimeInput: event.target.value }))}
               />
-              <span className="text-slate-400 text-sm shrink-0">-</span>
+              <span className="text-slate-400 text-sm">-</span>
               <input
                 type="time"
                 className={dateTimeClass}
