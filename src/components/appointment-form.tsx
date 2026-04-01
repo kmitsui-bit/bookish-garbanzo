@@ -274,8 +274,15 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
 
         {/* 前日TEL日時 */}
         <div className="md:col-span-2">
-          <Field label="☎【前日】TEL日時" hint={prevDayTelDate ? `日付：${prevDayTelDate}（訪問日前日）` : "訪問日を入力すると自動設定"}>
-            <div className="grid grid-cols-[1fr_auto_1fr] gap-2 items-center">
+          <Field label="☎【前日】TEL日時" hint="訪問日を入力すると日付が自動設定">
+            <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 items-center">
+              <input
+                type="text"
+                className={dateTimeClass}
+                value={prevDayTelDate}
+                readOnly
+                placeholder="訪問日を入力すると自動設定"
+              />
               <input
                 type="time"
                 className={dateTimeClass}
