@@ -36,7 +36,8 @@ export const appointmentFormSchema = z
     telAppointment: z.boolean().optional().default(false),
     appointmentType: z.enum(["蓄電池単体", "創蓄☀️", "その他"]).default("蓄電池単体"),
     appointmentTypeOther: z.string().optional().default(""),
-    salesName: z.string().min(1, "営業マン名は必須です")
+    salesName: z.string().min(1, "営業マン名は必須です"),
+    genderDetail: z.string().optional().default("")
   })
   .superRefine((data, ctx) => {
     const visitDateInput = data.visitAtDateInput?.trim() ?? "";

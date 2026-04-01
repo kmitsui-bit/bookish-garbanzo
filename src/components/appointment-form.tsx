@@ -39,7 +39,8 @@ const emptyValues: AppointmentFormInput = {
   telAppointment: false,
   appointmentType: "蓄電池単体",
   appointmentTypeOther: "",
-  salesName: ""
+  salesName: "",
+  genderDetail: ""
 };
 
 function Field({
@@ -101,7 +102,8 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
       telAppointment: initialValues?.telAppointment ?? false,
       appointmentType: (initialValues?.appointmentType as "蓄電池単体" | "創蓄☀️" | "その他") ?? "蓄電池単体",
       appointmentTypeOther: initialValues?.appointmentTypeOther ?? "",
-      salesName: initialValues?.salesName ?? ""
+      salesName: initialValues?.salesName ?? "",
+      genderDetail: initialValues?.genderDetail ?? ""
     };
   }, [initialValues]);
 
@@ -143,6 +145,9 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
 
   const inputClass =
     "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:ring-4 focus:ring-sky-100";
+
+  const dateTimeClass =
+    "w-full appearance-auto rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5 rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
@@ -205,13 +210,13 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
           <div className="flex gap-2">
             <input
               type="date"
-              className={inputClass}
+              className={dateTimeClass}
               value={values.visitAtDateInput}
               onChange={(event) => setValues((prev) => ({ ...prev, visitAtDateInput: event.target.value }))}
             />
             <input
               type="time"
-              className={inputClass}
+              className={dateTimeClass}
               value={values.visitAtTimeInput}
               onChange={(event) => setValues((prev) => ({ ...prev, visitAtTimeInput: event.target.value }))}
             />
@@ -223,13 +228,13 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
           <div className="flex gap-2">
             <input
               type="date"
-              className={inputClass}
+              className={dateTimeClass}
               value={values.telAtDateInput}
               onChange={(event) => setValues((prev) => ({ ...prev, telAtDateInput: event.target.value }))}
             />
             <input
               type="time"
-              className={inputClass}
+              className={dateTimeClass}
               value={values.telAtTimeInput}
               onChange={(event) => setValues((prev) => ({ ...prev, telAtTimeInput: event.target.value }))}
             />
@@ -261,6 +266,20 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
             <option value="C">C</option>
           </select>
         </Field>
+
+        {/* 性別CのときC詳細欄 */}
+        {values.gender === "C" && (
+          <div className="md:col-span-2">
+            <Field label="C 詳細">
+              <input
+                className={inputClass}
+                placeholder="詳細を入力してください"
+                value={values.genderDetail ?? ""}
+                onChange={(event) => setValues((prev) => ({ ...prev, genderDetail: event.target.value }))}
+              />
+            </Field>
+          </div>
+        )}
 
         {/* 名前 */}
         <Field label="名前" hint="カタカナ入力欄" required error={errors.nameKana?.[0]}>

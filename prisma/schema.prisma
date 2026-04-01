@@ -32,6 +32,7 @@ model Appointment {
   appointmentType          String            @default("蓄電池単体")
   appointmentTypeOther     String?
   salesName                String            @default("")
+  genderDetail             String?
   selfCall                 Boolean           @default(false)
   telAppointment           Boolean           @default(false)
   telReminderEnabled       Boolean           @default(true)
