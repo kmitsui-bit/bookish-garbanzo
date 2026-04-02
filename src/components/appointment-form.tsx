@@ -250,14 +250,14 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
         {/* 翌日TEL日時 */}
         <div className="md:col-span-2">
           <Field label="☎【翌日】TEL日時" required error={errors.telAtDateInput?.[0] ?? errors.telAtStartTimeInput?.[0]}>
-            <div className="space-y-2 sm:grid sm:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center sm:gap-2 sm:space-y-0">
+            <div className="grid gap-2 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] md:items-center">
               <input
                 type="date"
                 className={dateTimeClass}
                 value={values.telAtDateInput}
                 onChange={(event) => setValues((prev) => ({ ...prev, telAtDateInput: event.target.value }))}
               />
-              <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:col-span-3">
+              <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
                 <input
                   type="time"
                   className={dateTimeClass}
@@ -279,14 +279,14 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
         {/* 前日TEL日時 */}
         <div className="md:col-span-2">
           <Field label="☎【前日】TEL日時">
-            <div className="space-y-2 sm:grid sm:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center sm:gap-2 sm:space-y-0">
+            <div className="grid gap-2 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] md:items-center">
               <input
                 type="date"
                 className={dateTimeClass}
                 value={values.prevDayTelAtDateInput}
                 onChange={(event) => setValues((prev) => ({ ...prev, prevDayTelAtDateInput: event.target.value }))}
               />
-              <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:col-span-3">
+              <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
                 <input
                   type="time"
                   className={dateTimeClass}
