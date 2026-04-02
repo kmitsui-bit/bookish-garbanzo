@@ -39,7 +39,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     return NextResponse.json({ message: "Not found" }, { status: 404 });
   }
 
-  const telChanged = existing.telAt.getTime() !== parsed.data.telAt.getTime();
+  const telChanged = (existing.telAt?.getTime() ?? 0) !== (parsed.data.telAt?.getTime() ?? 0);
   const selfCallChanged = existing.selfCall !== parsed.data.selfCall;
   const telAppointmentChanged = existing.telAppointment !== parsed.data.telAppointment;
 
