@@ -156,8 +156,22 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
   const inputClass =
     "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:ring-4 focus:ring-sky-100";
 
-  const dateTimeClass =
-    "w-full appearance-auto rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100";
+const dateTimeClass =
+  "w-full appearance-auto rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100";
+
+function normalizeTimeInput(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 4);
+
+  if (!digits) {
+    return "";
+  }
+
+  if (digits.length <= 2) {
+    return digits;
+  }
+
+  return `${digits.slice(0, 2)}:${digits.slice(2)}`;
+}
 
   function toPreviousDateInput(dateInput: string) {
     if (!dateInput) return "";
@@ -225,7 +239,7 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
       <div className="grid gap-5 md:grid-cols-2">
         {/* 訪問日時 */}
         <Field label="訪問日時" required={!values.telAppointment} error={errors.visitAtDateInput?.[0] ?? errors.visitAtTimeInput?.[0]}>
-          <div className="flex gap-2">
+          <div className="grid min-w-0 grid-cols-2 gap-2">
             <input
               type="date"
               className={dateTimeClass}
@@ -239,10 +253,18 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
               }
             />
             <input
-              type="time"
+              type="text"
               className={dateTimeClass}
+              inputMode="numeric"
+              placeholder="--:--"
+              maxLength={5}
               value={values.visitAtTimeInput}
-              onChange={(event) => setValues((prev) => ({ ...prev, visitAtTimeInput: event.target.value }))}
+              onChange={(event) =>
+                setValues((prev) => ({
+                  ...prev,
+                  visitAtTimeInput: normalizeTimeInput(event.target.value)
+                }))
+              }
             />
           </div>
         </Field>
@@ -250,7 +272,7 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
         {/* 翌日TEL日時 */}
         <div className="md:col-span-2">
           <Field label="☎【翌日】TEL日時" required error={errors.telAtDateInput?.[0] ?? errors.telAtStartTimeInput?.[0]}>
-            <div className="grid gap-2 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] md:items-center">
+            <div className="grid min-w-0 gap-2">
               <input
                 type="date"
                 className={dateTimeClass}
@@ -259,17 +281,33 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
               />
               <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
                 <input
-                  type="time"
+                  type="text"
                   className={dateTimeClass}
+                  inputMode="numeric"
+                  placeholder="--:--"
+                  maxLength={5}
                   value={values.telAtStartTimeInput}
-                  onChange={(event) => setValues((prev) => ({ ...prev, telAtStartTimeInput: event.target.value }))}
+                  onChange={(event) =>
+                    setValues((prev) => ({
+                      ...prev,
+                      telAtStartTimeInput: normalizeTimeInput(event.target.value)
+                    }))
+                  }
                 />
                 <span className="text-center text-sm text-slate-400">-</span>
                 <input
-                  type="time"
+                  type="text"
                   className={dateTimeClass}
+                  inputMode="numeric"
+                  placeholder="--:--"
+                  maxLength={5}
                   value={values.telAtEndTimeInput}
-                  onChange={(event) => setValues((prev) => ({ ...prev, telAtEndTimeInput: event.target.value }))}
+                  onChange={(event) =>
+                    setValues((prev) => ({
+                      ...prev,
+                      telAtEndTimeInput: normalizeTimeInput(event.target.value)
+                    }))
+                  }
                 />
               </div>
             </div>
@@ -279,7 +317,7 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
         {/* 前日TEL日時 */}
         <div className="md:col-span-2">
           <Field label="☎【前日】TEL日時">
-            <div className="grid gap-2 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] md:items-center">
+            <div className="grid min-w-0 gap-2">
               <input
                 type="date"
                 className={dateTimeClass}
@@ -288,17 +326,33 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
               />
               <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
                 <input
-                  type="time"
+                  type="text"
                   className={dateTimeClass}
+                  inputMode="numeric"
+                  placeholder="--:--"
+                  maxLength={5}
                   value={values.prevDayTelAtStartTimeInput}
-                  onChange={(event) => setValues((prev) => ({ ...prev, prevDayTelAtStartTimeInput: event.target.value }))}
+                  onChange={(event) =>
+                    setValues((prev) => ({
+                      ...prev,
+                      prevDayTelAtStartTimeInput: normalizeTimeInput(event.target.value)
+                    }))
+                  }
                 />
                 <span className="text-center text-sm text-slate-400">-</span>
                 <input
-                  type="time"
+                  type="text"
                   className={dateTimeClass}
+                  inputMode="numeric"
+                  placeholder="--:--"
+                  maxLength={5}
                   value={values.prevDayTelAtEndTimeInput}
-                  onChange={(event) => setValues((prev) => ({ ...prev, prevDayTelAtEndTimeInput: event.target.value }))}
+                  onChange={(event) =>
+                    setValues((prev) => ({
+                      ...prev,
+                      prevDayTelAtEndTimeInput: normalizeTimeInput(event.target.value)
+                    }))
+                  }
                 />
               </div>
             </div>
