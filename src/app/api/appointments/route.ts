@@ -29,8 +29,8 @@ export async function POST(request: Request) {
   const appointment = await prisma.appointment.create({
     data: {
       visitAt: parsed.data.visitAt,
-      telAt: parsed.data.telAt,
-      telAtEnd: parsed.data.telAtEnd,
+      telAt: parsed.data.telAt ?? parsed.data.visitAt,
+      telAtEnd: parsed.data.telAtEnd ?? undefined,
       prevDayTelAt: parsed.data.prevDayTelAt,
       prevDayTelAtEnd: parsed.data.prevDayTelAtEnd,
       age: parsed.data.age,
