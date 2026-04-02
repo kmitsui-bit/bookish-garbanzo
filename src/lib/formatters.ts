@@ -33,9 +33,11 @@ export function buildFormSubmittedMessage(appointment: Appointment) {
   const line1 = `【${typeLabel}】${salesName}アポ`;
   const line2 = `${formatMonthDayTime(appointment.visitAt)} ${appointment.age}${appointment.gender} ${withHonorific(appointment.nameKana)}`;
 
-  const telNextDay = appointment.telAt
-    ? `☎【翌日】TEL日時：${formatMonthDayTime(appointment.telAt)} ${telTimeRange(appointment.telAt, appointment.telAtEnd)}`
-    : null;
+  const telNextDay = (appointment as { telSkip?: boolean }).telSkip
+    ? "☎【翌日】TEL日時：不要"
+    : appointment.telAt
+      ? `☎【翌日】TEL日時：${formatMonthDayTime(appointment.telAt)} ${telTimeRange(appointment.telAt, appointment.telAtEnd)}`
+      : null;
 
   const telPrevDay = appointment.prevDayTelAt
     ? `☎【前日】TEL日時：${formatMonthDayTime(appointment.prevDayTelAt)} ${telTimeRange(appointment.prevDayTelAt, appointment.prevDayTelAtEnd)}`

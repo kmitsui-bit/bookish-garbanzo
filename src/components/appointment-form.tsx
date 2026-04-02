@@ -41,6 +41,7 @@ const emptyValues: AppointmentFormInput = {
   detail: "",
   selfCall: false,
   telAppointment: false,
+  telSkip: false,
   appointmentType: "蓄電池単体",
   appointmentTypeOther: "",
   salesName: "",
@@ -112,6 +113,7 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
       detail: initialValues?.detail ?? "",
       selfCall: initialValues?.selfCall ?? false,
       telAppointment: initialValues?.telAppointment ?? false,
+      telSkip: (initialValues as { telSkip?: boolean })?.telSkip ?? false,
       appointmentType: (initialValues?.appointmentType as "蓄電池単体" | "創蓄☀️" | "その他") ?? "蓄電池単体",
       appointmentTypeOther: initialValues?.appointmentTypeOther ?? "",
       salesName: initialValues?.salesName ?? "",
@@ -281,55 +283,75 @@ function addTwoHours(timeStr: string): string {
         </Field>
 
         {/* 翌日TEL日時 */}
-                <div className="md:col-span-2">
-                  <Field label="☎【翌日】TEL日時" required error={errors.telAtDateInput?.[0] ?? errors.telAtStartTimeInput?.[0]}>
-                    <div className="grid w-full min-w-0 gap-2 overflow-hidden">
-                      <input
-                        type="date"
-                        className={`${dateTimeClass} max-w-full min-w-0`}
-                        value={values.telAtDateInput}
-                        onChange={(event) => setValues((prev) => ({ ...prev, telAtDateInput: event.target.value }))}
-                      />
-                      <div className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
-                        <input
-                          type="text"
-                          className={`${dateTimeClass} max-w-full min-w-0 text-center`}
-                          inputMode="numeric"
-                          placeholder="--:--"
-                          pattern="[0-9:]*"
-                          autoComplete="off"
-                          maxLength={5}
-                  value={values.telAtStartTimeInput}
-                  onChange={(event) => {
-                    const normalized = normalizeTimeInput(event.target.value);
-                    const end = addTwoHours(normalized);
-                    setValues((prev) => ({
-                      ...prev,
-                      telAtStartTimeInput: normalized,
-                      ...(end ? { telAtEndTimeInput: end } : {})
-                            }));
-                          }}
-                        />
-                        <span className="px-1 text-center text-slate-400">-</span>
-                        <input
-                          type="text"
-                          className={`${dateTimeClass} max-w-full min-w-0 text-center`}
-                          inputMode="numeric"
-                          placeholder="--:--"
-                          pattern="[0-9:]*"
-                          autoComplete="off"
-            maxLength={5}
-                  value={values.telAtEndTimeInput}
-                  onChange={(event) =>
-                    setValues((prev) => ({
-                      ...prev,
-                      telAtEndTimeInput: normalizeTimeInput(event.target.value)
-                    }))
-                  }
+        <div className="md:col-span-2">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-slate-800">☎【翌日】TEL日時</span>
+              <span className="text-xs text-slate-400">任意</span>
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={values.telSkip ?? false}
+                  onChange={(event) => setValues((prev) => ({ ...prev, telSkip: event.target.checked }))}
+                  className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
                 />
-              </div>
+                <span className="text-sm text-slate-600">不要</span>
+              </label>
             </div>
-          </Field>
+            {errors.telAtDateInput?.[0] && <p className="text-sm text-rose-600">{errors.telAtDateInput[0]}</p>}
+            {errors.telAtStartTimeInput?.[0] && <p className="text-sm text-rose-600">{errors.telAtStartTimeInput[0]}</p>}
+            {!values.telSkip && (
+              <div className="grid w-full min-w-0 gap-2 overflow-hidden">
+                <input
+                  type="date"
+                  className={`${dateTimeClass} max-w-full min-w-0`}
+                  value={values.telAtDateInput}
+                  onChange={(event) => setValues((prev) => ({ ...prev, telAtDateInput: event.target.value }))}
+                />
+                <div className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
+                  <input
+                    type="text"
+                    className={`${dateTimeClass} max-w-full min-w-0 text-center`}
+                    inputMode="numeric"
+                    placeholder="--:--"
+                    pattern="[0-9:]*"
+                    autoComplete="off"
+                    maxLength={5}
+                    value={values.telAtStartTimeInput}
+                    onChange={(event) => {
+                      const normalized = normalizeTimeInput(event.target.value);
+                      const end = addTwoHours(normalized);
+                      setValues((prev) => ({
+                        ...prev,
+                        telAtStartTimeInput: normalized,
+                        ...(end ? { telAtEndTimeInput: end } : {})
+                      }));
+                    }}
+                  />
+                  <span className="px-1 text-center text-slate-400">-</span>
+                  <input
+                    type="text"
+                    className={`${dateTimeClass} max-w-full min-w-0 text-center`}
+                    inputMode="numeric"
+                    placeholder="--:--"
+                    pattern="[0-9:]*"
+                    autoComplete="off"
+                    maxLength={5}
+                    value={values.telAtEndTimeInput}
+                    onChange={(event) =>
+                      setValues((prev) => ({
+                        ...prev,
+                        telAtEndTimeInput: normalizeTimeInput(event.target.value)
+                      }))
+                    }
+                  />
+                </div>
+              </div>
+            )}
+            {values.telSkip && (
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-400">不要</div>
+            )}
+          </div>
         </div>
 
         {/* 前日TEL日時 */}

@@ -54,6 +54,7 @@ export async function POST(request: Request) {
       genderDetail: parsed.data.genderDetail,
       selfCall: parsed.data.selfCall,
       telAppointment: parsed.data.telAppointment,
+      telSkip: parsed.data.telSkip,
       telReminderEnabled: parsed.data.telReminderEnabled
     }
   });

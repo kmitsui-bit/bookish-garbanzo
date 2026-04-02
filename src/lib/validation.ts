@@ -9,9 +9,10 @@ export const appointmentFormSchema = z
   .object({
     visitAtDateInput: z.string().optional().default(""),
     visitAtTimeInput: z.string().optional().default(""),
-    telAtDateInput: z.string().min(1, "TEL日（月/日）は必須です"),
-    telAtStartTimeInput: z.string().min(1, "TEL開始時間は必須です"),
-    telAtEndTimeInput: z.string().min(1, "TEL終了時間は必須です"),
+    telSkip: z.boolean().optional().default(false),
+    telAtDateInput: z.string().optional().default(""),
+    telAtStartTimeInput: z.string().optional().default(""),
+    telAtEndTimeInput: z.string().optional().default(""),
     prevDayTelAtDateInput: z.string().optional().default(""),
     prevDayTelAtStartTimeInput: z.string().optional().default("18:00"),
     prevDayTelAtEndTimeInput: z.string().optional().default("20:00"),
@@ -65,18 +66,20 @@ export const appointmentFormSchema = z
       }
     }
 
-    if (!data.telAtDateInput) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["telAtDateInput"], message: "TEL日は必須です" });
-    }
-    if (!timePattern.test(data.telAtStartTimeInput)) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["telAtStartTimeInput"], message: "TEL開始時間はHH:mm形式で入力してください" });
-    }
-    if (!timePattern.test(data.telAtEndTimeInput)) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["telAtEndTimeInput"], message: "TEL終了時間はHH:mm形式で入力してください" });
-    }
-    if (data.telAtDateInput && data.telAtStartTimeInput) {
-      if (!parseDateTimeInput(data.telAtDateInput, data.telAtStartTimeInput)) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["telAtDateInput"], message: "TEL日時を確認してください" });
+    if (!data.telSkip) {
+      if (!data.telAtDateInput) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["telAtDateInput"], message: "TEL日は必須です" });
+      }
+      if (!timePattern.test(data.telAtStartTimeInput ?? "")) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["telAtStartTimeInput"], message: "TEL開始時間はHH:mm形式で入力してください" });
+      }
+      if (!timePattern.test(data.telAtEndTimeInput ?? "")) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["telAtEndTimeInput"], message: "TEL終了時間はHH:mm形式で入力してください" });
+      }
+      if (data.telAtDateInput && data.telAtStartTimeInput) {
+        if (!parseDateTimeInput(data.telAtDateInput, data.telAtStartTimeInput)) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["telAtDateInput"], message: "TEL日時を確認してください" });
+        }
       }
     }
 
@@ -109,8 +112,12 @@ export function parseAppointmentPayload(input: unknown) {
       ? parseDateTimeInput(visitAtDateInput, visitAtTimeInput)
       : null;
 
-  const telAt = parseDateTimeInput(parsed.data.telAtDateInput, parsed.data.telAtStartTimeInput);
-  const telAtEnd = parseDateTimeInput(parsed.data.telAtDateInput, parsed.data.telAtEndTimeInput);
+  const telAt = parsed.data.telSkip
+    ? null
+    : parseDateTimeInput(parsed.data.telAtDateInput ?? "", parsed.data.telAtStartTimeInput ?? "");
+  const telAtEnd = parsed.data.telSkip
+    ? null
+    : parseDateTimeInput(parsed.data.telAtDateInput ?? "", parsed.data.telAtEndTimeInput ?? "");
 
   if (!parsed.data.telAppointment && !visitAt) {
     return {
@@ -123,7 +130,7 @@ export function parseAppointmentPayload(input: unknown) {
     };
   }
 
-  if (!telAt) {
+  if (!parsed.data.telSkip && !telAt) {
     return {
       success: false as const,
       error: {
@@ -135,7 +142,7 @@ export function parseAppointmentPayload(input: unknown) {
   }
 
   // 前日TEL: visitAt - 1日
-  const baseDate = visitAt ?? telAt;
+  const baseDate = visitAt ?? telAt ?? new Date();
   const prevDayDateStr = parsed.data.prevDayTelAtDateInput?.trim() || getDateMinusOne(baseDate);
   const prevDayTelAt = parsed.data.prevDayTelAtStartTimeInput
     ? parseDateTimeInput(prevDayDateStr, parsed.data.prevDayTelAtStartTimeInput)
@@ -149,12 +156,12 @@ export function parseAppointmentPayload(input: unknown) {
     data: {
       ...parsed.data,
       age: Number(parsed.data.age),
-      visitAt: visitAt ?? telAt,
+      visitAt: visitAt ?? telAt ?? new Date(),
       telAt,
       telAtEnd,
       prevDayTelAt,
       prevDayTelAtEnd,
-      telReminderEnabled: !parsed.data.selfCall && !parsed.data.telAppointment,
+      telReminderEnabled: !parsed.data.selfCall && !parsed.data.telAppointment && !parsed.data.telSkip,
       salesName: parsed.data.salesName.trim()
     }
   };

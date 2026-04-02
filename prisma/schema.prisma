@@ -38,6 +38,7 @@ model Appointment {
   genderDetail             String?
   selfCall                 Boolean           @default(false)
   telAppointment           Boolean           @default(false)
+  telSkip                  Boolean           @default(false)
   telReminderEnabled       Boolean           @default(true)
   telReminderSentAt        DateTime?
   formNotificationSentAt   DateTime?
