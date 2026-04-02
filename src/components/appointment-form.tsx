@@ -252,10 +252,10 @@ function addTwoHours(timeStr: string): string {
       <div className="grid gap-5 md:grid-cols-2">
         {/* 訪問日時 */}
         <Field label="訪問日時" required={!values.telAppointment} error={errors.visitAtDateInput?.[0] ?? errors.visitAtTimeInput?.[0]}>
-          <div className="grid min-w-0 grid-cols-2 gap-2">
+          <div className="grid gap-2">
             <input
               type="date"
-              className={dateTimeClass}
+              className={inputClass}
               value={values.visitAtDateInput}
               onChange={(event) =>
                 setValues((prev) => ({
@@ -267,7 +267,7 @@ function addTwoHours(timeStr: string): string {
             />
             <input
               type="text"
-              className={dateTimeClass}
+              className={inputClass}
               inputMode="numeric"
               placeholder="--:--"
               maxLength={5}
@@ -301,20 +301,19 @@ function addTwoHours(timeStr: string): string {
             {errors.telAtDateInput?.[0] && <p className="text-sm text-rose-600">{errors.telAtDateInput[0]}</p>}
             {errors.telAtStartTimeInput?.[0] && <p className="text-sm text-rose-600">{errors.telAtStartTimeInput[0]}</p>}
             {!values.telSkip && (
-              <div className="grid w-full min-w-0 gap-2 overflow-hidden">
+              <div className="grid gap-2">
                 <input
                   type="date"
-                  className={`${dateTimeClass} max-w-full min-w-0`}
+                  className={inputClass}
                   value={values.telAtDateInput}
                   onChange={(event) => setValues((prev) => ({ ...prev, telAtDateInput: event.target.value }))}
                 />
-                <div className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
+                <div className="flex items-center gap-2">
                   <input
                     type="text"
-                    className={`${dateTimeClass} max-w-full min-w-0 text-center`}
+                    className={inputClass}
                     inputMode="numeric"
                     placeholder="--:--"
-                    pattern="[0-9:]*"
                     autoComplete="off"
                     maxLength={5}
                     value={values.telAtStartTimeInput}
@@ -328,13 +327,12 @@ function addTwoHours(timeStr: string): string {
                       }));
                     }}
                   />
-                  <span className="px-1 text-center text-slate-400">-</span>
+                  <span className="shrink-0 text-slate-400">-</span>
                   <input
                     type="text"
-                    className={`${dateTimeClass} max-w-full min-w-0 text-center`}
+                    className={inputClass}
                     inputMode="numeric"
                     placeholder="--:--"
-                    pattern="[0-9:]*"
                     autoComplete="off"
                     maxLength={5}
                     value={values.telAtEndTimeInput}
@@ -355,24 +353,23 @@ function addTwoHours(timeStr: string): string {
         </div>
 
         {/* 前日TEL日時 */}
-                <div className="md:col-span-2">
-                  <Field label="☎【前日】TEL日時">
-                    <div className="grid w-full min-w-0 gap-2 overflow-hidden">
-                      <input
-                        type="date"
-          className={`${dateTimeClass} max-w-full min-w-0`}
-          value={values.prevDayTelAtDateInput}
-          onChange={(event) => setValues((prev) => ({ ...prev, prevDayTelAtDateInput: event.target.value }))}
-        />
-                      <div className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
-                        <input
-                          type="text"
-                          className={`${dateTimeClass} max-w-full min-w-0 text-center`}
-                          inputMode="numeric"
-                          placeholder="--:--"
-                          pattern="[0-9:]*"
-                          autoComplete="off"
-            maxLength={5}
+        <div className="md:col-span-2">
+          <Field label="☎【前日】TEL日時">
+            <div className="grid gap-2">
+              <input
+                type="date"
+                className={inputClass}
+                value={values.prevDayTelAtDateInput}
+                onChange={(event) => setValues((prev) => ({ ...prev, prevDayTelAtDateInput: event.target.value }))}
+              />
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  className={inputClass}
+                  inputMode="numeric"
+                  placeholder="--:--"
+                  autoComplete="off"
+                  maxLength={5}
                   value={values.prevDayTelAtStartTimeInput}
                   onChange={(event) => {
                     const normalized = normalizeTimeInput(event.target.value);
@@ -381,18 +378,17 @@ function addTwoHours(timeStr: string): string {
                       ...prev,
                       prevDayTelAtStartTimeInput: normalized,
                       ...(end ? { prevDayTelAtEndTimeInput: end } : {})
-                            }));
-                          }}
-                        />
-                        <span className="px-1 text-center text-slate-400">-</span>
-                        <input
-                          type="text"
-                          className={`${dateTimeClass} max-w-full min-w-0 text-center`}
-                          inputMode="numeric"
-                          placeholder="--:--"
-                          pattern="[0-9:]*"
-                          autoComplete="off"
-            maxLength={5}
+                    }));
+                  }}
+                />
+                <span className="shrink-0 text-slate-400">-</span>
+                <input
+                  type="text"
+                  className={inputClass}
+                  inputMode="numeric"
+                  placeholder="--:--"
+                  autoComplete="off"
+                  maxLength={5}
                   value={values.prevDayTelAtEndTimeInput}
                   onChange={(event) =>
                     setValues((prev) => ({
