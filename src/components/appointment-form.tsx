@@ -173,6 +173,17 @@ function normalizeTimeInput(value: string) {
   return `${digits.slice(0, 2)}:${digits.slice(2)}`;
 }
 
+function addTwoHours(timeStr: string): string {
+  const match = timeStr.match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) return "";
+  const h = parseInt(match[1], 10);
+  const m = parseInt(match[2], 10);
+  const totalMin = h * 60 + m + 120;
+  const newH = Math.floor(totalMin / 60) % 24;
+  const newM = totalMin % 60;
+  return `${String(newH).padStart(2, "0")}:${String(newM).padStart(2, "0")}`;
+}
+
   function toPreviousDateInput(dateInput: string) {
     if (!dateInput) return "";
     try {
@@ -270,40 +281,44 @@ function normalizeTimeInput(value: string) {
         </Field>
 
         {/* 翌日TEL日時 */}
-        <div className="md:col-span-2">
-          <Field label="☎【翌日】TEL日時" required error={errors.telAtDateInput?.[0] ?? errors.telAtStartTimeInput?.[0]}>
-            <div className="grid w-full min-w-0 gap-2">
-              <input
-                type="date"
-                className={`${dateTimeClass} max-w-full min-w-0`}
-                value={values.telAtDateInput}
-                onChange={(event) => setValues((prev) => ({ ...prev, telAtDateInput: event.target.value }))}
-              />
-              <div className="grid w-full min-w-0 grid-cols-2 gap-2">
-                <input
-                  type="text"
-                  className={`${dateTimeClass} min-w-0 text-center`}
-                  inputMode="numeric"
-                  placeholder="--:--"
-                  pattern="[0-9:]*"
-                  autoComplete="off"
-                  maxLength={5}
+                <div className="md:col-span-2">
+                  <Field label="☎【翌日】TEL日時" required error={errors.telAtDateInput?.[0] ?? errors.telAtStartTimeInput?.[0]}>
+                    <div className="grid w-full min-w-0 gap-2 overflow-hidden">
+                      <input
+                        type="date"
+                        className={`${dateTimeClass} max-w-full min-w-0`}
+                        value={values.telAtDateInput}
+                        onChange={(event) => setValues((prev) => ({ ...prev, telAtDateInput: event.target.value }))}
+                      />
+                      <div className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
+                        <input
+                          type="text"
+                          className={`${dateTimeClass} max-w-full min-w-0 text-center`}
+                          inputMode="numeric"
+                          placeholder="--:--"
+                          pattern="[0-9:]*"
+                          autoComplete="off"
+                          maxLength={5}
                   value={values.telAtStartTimeInput}
-                  onChange={(event) =>
+                  onChange={(event) => {
+                    const normalized = normalizeTimeInput(event.target.value);
+                    const end = addTwoHours(normalized);
                     setValues((prev) => ({
                       ...prev,
-                      telAtStartTimeInput: normalizeTimeInput(event.target.value)
-                    }))
-                  }
-                />
-                <input
-                  type="text"
-                  className={`${dateTimeClass} min-w-0 text-center`}
-                  inputMode="numeric"
-                  placeholder="--:--"
-                  pattern="[0-9:]*"
-                  autoComplete="off"
-                  maxLength={5}
+                      telAtStartTimeInput: normalized,
+                      ...(end ? { telAtEndTimeInput: end } : {})
+                            }));
+                          }}
+                        />
+                        <span className="px-1 text-center text-slate-400">-</span>
+                        <input
+                          type="text"
+                          className={`${dateTimeClass} max-w-full min-w-0 text-center`}
+                          inputMode="numeric"
+                          placeholder="--:--"
+                          pattern="[0-9:]*"
+                          autoComplete="off"
+            maxLength={5}
                   value={values.telAtEndTimeInput}
                   onChange={(event) =>
                     setValues((prev) => ({
@@ -318,40 +333,44 @@ function normalizeTimeInput(value: string) {
         </div>
 
         {/* 前日TEL日時 */}
-        <div className="md:col-span-2">
-          <Field label="☎【前日】TEL日時">
-            <div className="grid w-full min-w-0 gap-2">
-              <input
-                type="date"
-                className={`${dateTimeClass} max-w-full min-w-0`}
-                value={values.prevDayTelAtDateInput}
-                onChange={(event) => setValues((prev) => ({ ...prev, prevDayTelAtDateInput: event.target.value }))}
-              />
-              <div className="grid w-full min-w-0 grid-cols-2 gap-2">
-                <input
-                  type="text"
-                  className={`${dateTimeClass} min-w-0 text-center`}
-                  inputMode="numeric"
-                  placeholder="--:--"
-                  pattern="[0-9:]*"
-                  autoComplete="off"
-                  maxLength={5}
+                <div className="md:col-span-2">
+                  <Field label="☎【前日】TEL日時">
+                    <div className="grid w-full min-w-0 gap-2 overflow-hidden">
+                      <input
+                        type="date"
+          className={`${dateTimeClass} max-w-full min-w-0`}
+          value={values.prevDayTelAtDateInput}
+          onChange={(event) => setValues((prev) => ({ ...prev, prevDayTelAtDateInput: event.target.value }))}
+        />
+                      <div className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
+                        <input
+                          type="text"
+                          className={`${dateTimeClass} max-w-full min-w-0 text-center`}
+                          inputMode="numeric"
+                          placeholder="--:--"
+                          pattern="[0-9:]*"
+                          autoComplete="off"
+            maxLength={5}
                   value={values.prevDayTelAtStartTimeInput}
-                  onChange={(event) =>
+                  onChange={(event) => {
+                    const normalized = normalizeTimeInput(event.target.value);
+                    const end = addTwoHours(normalized);
                     setValues((prev) => ({
                       ...prev,
-                      prevDayTelAtStartTimeInput: normalizeTimeInput(event.target.value)
-                    }))
-                  }
-                />
-                <input
-                  type="text"
-                  className={`${dateTimeClass} min-w-0 text-center`}
-                  inputMode="numeric"
-                  placeholder="--:--"
-                  pattern="[0-9:]*"
-                  autoComplete="off"
-                  maxLength={5}
+                      prevDayTelAtStartTimeInput: normalized,
+                      ...(end ? { prevDayTelAtEndTimeInput: end } : {})
+                            }));
+                          }}
+                        />
+                        <span className="px-1 text-center text-slate-400">-</span>
+                        <input
+                          type="text"
+                          className={`${dateTimeClass} max-w-full min-w-0 text-center`}
+                          inputMode="numeric"
+                          placeholder="--:--"
+                          pattern="[0-9:]*"
+                          autoComplete="off"
+            maxLength={5}
                   value={values.prevDayTelAtEndTimeInput}
                   onChange={(event) =>
                     setValues((prev) => ({
