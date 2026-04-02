@@ -157,7 +157,7 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
     "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:ring-4 focus:ring-sky-100";
 
 const dateTimeClass =
-  "w-full appearance-auto rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100";
+  "min-w-0 w-full appearance-auto rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100";
 
 function normalizeTimeInput(value: string) {
   const digits = value.replace(/\D/g, "").slice(0, 4);
@@ -183,7 +183,7 @@ function normalizeTimeInput(value: string) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5 rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+    <form onSubmit={handleSubmit} className="overflow-hidden space-y-5 rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
 
       {/* テレアポ チェックボックス */}
       <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
@@ -272,19 +272,21 @@ function normalizeTimeInput(value: string) {
         {/* 翌日TEL日時 */}
         <div className="md:col-span-2">
           <Field label="☎【翌日】TEL日時" required error={errors.telAtDateInput?.[0] ?? errors.telAtStartTimeInput?.[0]}>
-            <div className="grid min-w-0 gap-2">
+            <div className="grid w-full min-w-0 gap-2">
               <input
                 type="date"
-                className={dateTimeClass}
+                className={`${dateTimeClass} max-w-full min-w-0`}
                 value={values.telAtDateInput}
                 onChange={(event) => setValues((prev) => ({ ...prev, telAtDateInput: event.target.value }))}
               />
-              <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
+              <div className="grid w-full min-w-0 grid-cols-2 gap-2">
                 <input
                   type="text"
-                  className={dateTimeClass}
+                  className={`${dateTimeClass} min-w-0 text-center`}
                   inputMode="numeric"
                   placeholder="--:--"
+                  pattern="[0-9:]*"
+                  autoComplete="off"
                   maxLength={5}
                   value={values.telAtStartTimeInput}
                   onChange={(event) =>
@@ -294,12 +296,13 @@ function normalizeTimeInput(value: string) {
                     }))
                   }
                 />
-                <span className="text-center text-sm text-slate-400">-</span>
                 <input
                   type="text"
-                  className={dateTimeClass}
+                  className={`${dateTimeClass} min-w-0 text-center`}
                   inputMode="numeric"
                   placeholder="--:--"
+                  pattern="[0-9:]*"
+                  autoComplete="off"
                   maxLength={5}
                   value={values.telAtEndTimeInput}
                   onChange={(event) =>
@@ -317,19 +320,21 @@ function normalizeTimeInput(value: string) {
         {/* 前日TEL日時 */}
         <div className="md:col-span-2">
           <Field label="☎【前日】TEL日時">
-            <div className="grid min-w-0 gap-2">
+            <div className="grid w-full min-w-0 gap-2">
               <input
                 type="date"
-                className={dateTimeClass}
+                className={`${dateTimeClass} max-w-full min-w-0`}
                 value={values.prevDayTelAtDateInput}
                 onChange={(event) => setValues((prev) => ({ ...prev, prevDayTelAtDateInput: event.target.value }))}
               />
-              <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
+              <div className="grid w-full min-w-0 grid-cols-2 gap-2">
                 <input
                   type="text"
-                  className={dateTimeClass}
+                  className={`${dateTimeClass} min-w-0 text-center`}
                   inputMode="numeric"
                   placeholder="--:--"
+                  pattern="[0-9:]*"
+                  autoComplete="off"
                   maxLength={5}
                   value={values.prevDayTelAtStartTimeInput}
                   onChange={(event) =>
@@ -339,12 +344,13 @@ function normalizeTimeInput(value: string) {
                     }))
                   }
                 />
-                <span className="text-center text-sm text-slate-400">-</span>
                 <input
                   type="text"
-                  className={dateTimeClass}
+                  className={`${dateTimeClass} min-w-0 text-center`}
                   inputMode="numeric"
                   placeholder="--:--"
+                  pattern="[0-9:]*"
+                  autoComplete="off"
                   maxLength={5}
                   value={values.prevDayTelAtEndTimeInput}
                   onChange={(event) =>
