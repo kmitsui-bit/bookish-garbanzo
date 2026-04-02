@@ -158,6 +158,9 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
   const inputClass =
     "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:ring-4 focus:ring-sky-100";
 
+  const dateInputClass =
+    "block w-full min-w-0 max-w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100";
+
 const dateTimeClass =
   "min-w-0 w-full appearance-auto rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100";
 
@@ -252,10 +255,10 @@ function addTwoHours(timeStr: string): string {
       <div className="grid gap-5 md:grid-cols-2">
         {/* 訪問日時 */}
         <Field label="訪問日時" required={!values.telAppointment} error={errors.visitAtDateInput?.[0] ?? errors.visitAtTimeInput?.[0]}>
-          <div className="grid gap-2">
+          <div className="grid gap-2 overflow-hidden">
             <input
               type="date"
-              className={inputClass}
+              className={dateInputClass}
               value={values.visitAtDateInput}
               onChange={(event) =>
                 setValues((prev) => ({
@@ -301,10 +304,10 @@ function addTwoHours(timeStr: string): string {
             {errors.telAtDateInput?.[0] && <p className="text-sm text-rose-600">{errors.telAtDateInput[0]}</p>}
             {errors.telAtStartTimeInput?.[0] && <p className="text-sm text-rose-600">{errors.telAtStartTimeInput[0]}</p>}
             {!values.telSkip && (
-              <div className="grid gap-2">
+              <div className="grid gap-2 overflow-hidden">
                 <input
                   type="date"
-                  className={inputClass}
+                  className={dateInputClass}
                   value={values.telAtDateInput}
                   onChange={(event) => setValues((prev) => ({ ...prev, telAtDateInput: event.target.value }))}
                 />
@@ -355,10 +358,10 @@ function addTwoHours(timeStr: string): string {
         {/* 前日TEL日時 */}
         <div className="md:col-span-2">
           <Field label="☎【前日】TEL日時">
-            <div className="grid gap-2">
+            <div className="grid gap-2 overflow-hidden">
               <input
                 type="date"
-                className={inputClass}
+                className={dateInputClass}
                 value={values.prevDayTelAtDateInput}
                 onChange={(event) => setValues((prev) => ({ ...prev, prevDayTelAtDateInput: event.target.value }))}
               />
