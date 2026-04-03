@@ -74,6 +74,24 @@ function Field({
   );
 }
 
+function normalizeTimeInput(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 4);
+  if (!digits) return "";
+  if (digits.length <= 2) return digits;
+  return `${digits.slice(0, 2)}:${digits.slice(2)}`;
+}
+
+function addTwoHours(timeStr: string): string {
+  const match = timeStr.match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) return "";
+  const h = parseInt(match[1], 10);
+  const m = parseInt(match[2], 10);
+  const totalMin = h * 60 + m + 120;
+  const newH = Math.floor(totalMin / 60) % 24;
+  const newM = totalMin % 60;
+  return `${String(newH).padStart(2, "0")}:${String(newM).padStart(2, "0")}`;
+}
+
 export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
   const router = useRouter();
 
@@ -129,7 +147,7 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
   const submitUrl = mode === "create" ? "/api/appointments" : `/api/appointments/${appointmentId}`;
   const method = mode === "create" ? "POST" : "PATCH";
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitting(true);
     setErrors({});
@@ -161,34 +179,6 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
   const dateInputClass =
     "block w-full min-w-0 max-w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100";
 
-const dateTimeClass =
-  "min-w-0 w-full appearance-auto rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100";
-
-function normalizeTimeInput(value: string) {
-  const digits = value.replace(/\D/g, "").slice(0, 4);
-
-  if (!digits) {
-    return "";
-  }
-
-  if (digits.length <= 2) {
-    return digits;
-  }
-
-  return `${digits.slice(0, 2)}:${digits.slice(2)}`;
-}
-
-function addTwoHours(timeStr: string): string {
-  const match = timeStr.match(/^(\d{1,2}):(\d{2})$/);
-  if (!match) return "";
-  const h = parseInt(match[1], 10);
-  const m = parseInt(match[2], 10);
-  const totalMin = h * 60 + m + 120;
-  const newH = Math.floor(totalMin / 60) % 24;
-  const newM = totalMin % 60;
-  return `${String(newH).padStart(2, "0")}:${String(newM).padStart(2, "0")}`;
-}
-
   function toPreviousDateInput(dateInput: string) {
     if (!dateInput) return "";
     try {
@@ -201,19 +191,33 @@ function addTwoHours(timeStr: string): string {
   return (
     <form onSubmit={handleSubmit} className="overflow-hidden space-y-5 rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
 
-      {/* テレアポ チェックボックス */}
-      <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-        <input
-          type="checkbox"
-          checked={values.telAppointment}
-          onChange={(event) => setValues((prev) => ({ ...prev, telAppointment: event.target.checked }))}
-          className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
-        />
-        <div>
-          <p className="text-sm font-medium text-slate-900">テレアポ（自分でTEL）</p>
-          <p className="text-xs text-slate-500">ON の場合は 5分前のTEL通知対象から除外されます</p>
-        </div>
-      </label>
+      {/* チェックボックス群 */}
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <label className="flex flex-1 items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+          <input
+            type="checkbox"
+            checked={values.telAppointment}
+            onChange={(event) => setValues((prev) => ({ ...prev, telAppointment: event.target.checked }))}
+            className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
+          />
+          <div>
+            <p className="text-sm font-medium text-slate-900">テレアポ（自分でTEL）</p>
+            <p className="text-xs text-slate-500">ON の場合は 5分前のTEL通知対象から除外されます</p>
+          </div>
+        </label>
+        <label className="flex flex-1 items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+          <input
+            type="checkbox"
+            checked={values.selfCall}
+            onChange={(event) => setValues((prev) => ({ ...prev, selfCall: event.target.checked }))}
+            className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
+          />
+          <div>
+            <p className="text-sm font-medium text-slate-900">自分でTEL</p>
+            <p className="text-xs text-slate-500">ON の場合は 5分前のTEL通知対象から除外されます</p>
+          </div>
+        </label>
+      </div>
 
       {/* 営業マン名 */}
       <Field label="営業マン名" hint="漢字で入力" required error={errors.salesName?.[0]}>
@@ -291,6 +295,7 @@ function addTwoHours(timeStr: string): string {
             <div className="flex items-center gap-3">
               <span className="text-sm font-medium text-slate-800">☎【翌日】TEL日時</span>
               <span className="text-xs text-slate-400">任意</span>
+              <span className="text-sm text-rose-600">※土日は原則不可 平日が理想</span>
               <label className="flex items-center gap-1.5 cursor-pointer">
                 <input
                   type="checkbox"
