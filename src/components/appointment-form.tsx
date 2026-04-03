@@ -191,33 +191,19 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
   return (
     <form onSubmit={handleSubmit} className="overflow-hidden space-y-5 rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
 
-      {/* チェックボックス群 */}
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <label className="flex flex-1 items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-          <input
-            type="checkbox"
-            checked={values.telAppointment}
-            onChange={(event) => setValues((prev) => ({ ...prev, telAppointment: event.target.checked }))}
-            className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
-          />
-          <div>
-            <p className="text-sm font-medium text-slate-900">テレアポ（自分でTEL）</p>
-            <p className="text-xs text-slate-500">ON の場合は 5分前のTEL通知対象から除外されます</p>
-          </div>
-        </label>
-        <label className="flex flex-1 items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-          <input
-            type="checkbox"
-            checked={values.selfCall}
-            onChange={(event) => setValues((prev) => ({ ...prev, selfCall: event.target.checked }))}
-            className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
-          />
-          <div>
-            <p className="text-sm font-medium text-slate-900">自分でTEL</p>
-            <p className="text-xs text-slate-500">ON の場合は 5分前のTEL通知対象から除外されます</p>
-          </div>
-        </label>
-      </div>
+      {/* テレアポ チェックボックス */}
+      <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+        <input
+          type="checkbox"
+          checked={values.telAppointment}
+          onChange={(event) => setValues((prev) => ({ ...prev, telAppointment: event.target.checked }))}
+          className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
+        />
+        <div>
+          <p className="text-sm font-medium text-slate-900">テレアポ（自分でTEL）</p>
+          <p className="text-xs text-slate-500">ON の場合は 5分前のTEL通知対象から除外されます</p>
+        </div>
+      </label>
 
       {/* 営業マン名 */}
       <Field label="営業マン名" hint="漢字で入力" required error={errors.salesName?.[0]}>
