@@ -175,9 +175,14 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
       return;
     }
 
-    setMessage(mode === "create" ? "登録が完了しました" : "更新が完了しました");
-    router.push(mode === "create" ? `/appointments/${data.appointment.id}` : `/appointments/${appointmentId}`);
-    router.refresh();
+    if (mode === "create") {
+      setValues({ ...emptyValues });
+      setMessage("登録・通知が完了しました");
+    } else {
+      setMessage("更新が完了しました");
+      router.push(`/appointments/${appointmentId}`);
+      router.refresh();
+    }
   }
 
   const inputClass =
