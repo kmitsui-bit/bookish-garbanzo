@@ -16,6 +16,8 @@ export const appointmentFormSchema = z
     prevDayTelAtDateInput: z.string().optional().default(""),
     prevDayTelAtStartTimeInput: z.string().optional().default("18:00"),
     prevDayTelAtEndTimeInput: z.string().optional().default("20:00"),
+    telApptDateInput: z.string().optional().default(""),
+    telApptTimeInput: z.string().optional().default(""),
     age: z.string().min(1, "年齢は必須です").regex(digitsRegex, "年齢は数字のみで入力してください"),
     gender: z.enum(["A", "B", "AB", "C"], {
       errorMap: () => ({ message: "性別を選択してください" })
@@ -47,17 +49,31 @@ export const appointmentFormSchema = z
     genderDetail: z.string().optional().default("")
   })
   .superRefine((data, ctx) => {
+    if (data.telAppointment) {
+      // テレアポモード: TEL日時のみ検証
+      if (!data.telApptDateInput) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["telApptDateInput"], message: "TEL日は必須です" });
+      }
+      if (!data.telApptTimeInput || !timePattern.test(data.telApptTimeInput)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["telApptTimeInput"], message: "TEL時間はHH:mm形式で入力してください" });
+      }
+      if (data.telApptDateInput && data.telApptTimeInput) {
+        if (!parseDateTimeInput(data.telApptDateInput, data.telApptTimeInput)) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["telApptDateInput"], message: "TEL日時を確認してください" });
+        }
+      }
+      return;
+    }
+
     const visitDateInput = data.visitAtDateInput?.trim() ?? "";
     const visitTimeInput = data.visitAtTimeInput?.trim() ?? "";
     const visitIsEmpty = !visitDateInput && !visitTimeInput;
 
-    if (!data.telAppointment) {
-      if (!visitDateInput) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["visitAtDateInput"], message: "訪問日は必須です" });
-      }
-      if (!visitTimeInput) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["visitAtTimeInput"], message: "訪問時間は必須です" });
-      }
+    if (!visitDateInput) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["visitAtDateInput"], message: "訪問日は必須です" });
+    }
+    if (!visitTimeInput) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["visitAtTimeInput"], message: "訪問時間は必須です" });
     }
 
     if (!visitIsEmpty && visitDateInput && visitTimeInput) {
@@ -105,6 +121,37 @@ export function parseAppointmentPayload(input: unknown) {
     return parsed;
   }
 
+  // テレアポモード
+  if (parsed.data.telAppointment) {
+    const telApptDate = parsed.data.telApptDateInput?.trim() ?? "";
+    const telApptTime = parsed.data.telApptTimeInput?.trim() ?? "";
+    const telApptAt = telApptDate && telApptTime ? parseDateTimeInput(telApptDate, telApptTime) : null;
+    if (!telApptAt) {
+      return {
+        success: false as const,
+        error: {
+          flatten: () => ({
+            fieldErrors: { telApptDateInput: ["TEL日時を確認してください"] }
+          })
+        }
+      };
+    }
+    return {
+      success: true as const,
+      data: {
+        ...parsed.data,
+        age: Number(parsed.data.age),
+        visitAt: telApptAt,
+        telAt: null,
+        telAtEnd: null,
+        prevDayTelAt: null,
+        prevDayTelAtEnd: null,
+        telReminderEnabled: false,
+        salesName: parsed.data.salesName.trim()
+      }
+    };
+  }
+
   const visitAtDateInput = parsed.data.visitAtDateInput?.trim() ?? "";
   const visitAtTimeInput = parsed.data.visitAtTimeInput?.trim() ?? "";
   const visitAt =
@@ -119,7 +166,7 @@ export function parseAppointmentPayload(input: unknown) {
     ? null
     : parseDateTimeInput(parsed.data.telAtDateInput ?? "", parsed.data.telAtEndTimeInput ?? "");
 
-  if (!parsed.data.telAppointment && !visitAt) {
+  if (!visitAt) {
     return {
       success: false as const,
       error: {
@@ -161,7 +208,7 @@ export function parseAppointmentPayload(input: unknown) {
       telAtEnd,
       prevDayTelAt,
       prevDayTelAtEnd,
-      telReminderEnabled: !parsed.data.selfCall && !parsed.data.telAppointment && !parsed.data.telSkip,
+      telReminderEnabled: !parsed.data.selfCall && !parsed.data.telSkip,
       salesName: parsed.data.salesName.trim()
     }
   };

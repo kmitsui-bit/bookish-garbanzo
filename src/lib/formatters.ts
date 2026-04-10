@@ -30,7 +30,8 @@ export function buildFormSubmittedMessage(appointment: Appointment) {
 
   const salesName = appointment.salesName || "";
 
-  const line1 = `【${typeLabel}】${salesName}アポ`;
+  const telAppoLabel = appointment.telAppointment ? " ☎️テレアポ" : "";
+  const line1 = `【${typeLabel}】${salesName}アポ${telAppoLabel}`;
   const line2 = `${formatMonthDayTime(appointment.visitAt)} ${appointment.age}${appointment.gender} ${withHonorific(appointment.nameKana)}`;
 
   const telNextDay = (appointment as { telSkip?: boolean }).telSkip

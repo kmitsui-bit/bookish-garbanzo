@@ -24,6 +24,8 @@ const emptyValues: AppointmentFormInput = {
   prevDayTelAtDateInput: "",
   prevDayTelAtStartTimeInput: "18:00",
   prevDayTelAtEndTimeInput: "20:00",
+  telApptDateInput: "",
+  telApptTimeInput: "",
   age: "",
   gender: "A",
   nameKana: "",
@@ -96,14 +98,17 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
   const router = useRouter();
 
   const initialForm = useMemo<AppointmentFormInput>(() => {
-    const visitAtDateInput = initialValues?.visitAt ? toFormDate(initialValues.visitAt) : "";
-    const visitAtTimeInput = initialValues?.visitAt ? toFormTime(initialValues.visitAt) : "";
+    const isTelAppt = initialValues?.telAppointment ?? false;
+    const visitAtDateInput = !isTelAppt && initialValues?.visitAt ? toFormDate(initialValues.visitAt) : "";
+    const visitAtTimeInput = !isTelAppt && initialValues?.visitAt ? toFormTime(initialValues.visitAt) : "";
     const telAtDateInput = initialValues?.telAt ? toFormDate(initialValues.telAt) : getTomorrowDate();
     const telAtStartTimeInput = initialValues?.telAt ? toFormTime(initialValues.telAt) : "18:00";
     const telAtEndTimeInput = initialValues?.telAtEnd ? toFormTime(initialValues.telAtEnd) : "20:00";
     const prevDayTelAtDateInput = initialValues?.prevDayTelAt ? toFormDate(initialValues.prevDayTelAt) : "";
     const prevDayTelAtStartTimeInput = initialValues?.prevDayTelAt ? toFormTime(initialValues.prevDayTelAt) : "18:00";
     const prevDayTelAtEndTimeInput = initialValues?.prevDayTelAtEnd ? toFormTime(initialValues.prevDayTelAtEnd) : "20:00";
+    const telApptDateInput = isTelAppt && initialValues?.visitAt ? toFormDate(initialValues.visitAt) : "";
+    const telApptTimeInput = isTelAppt && initialValues?.visitAt ? toFormTime(initialValues.visitAt) : "";
 
     return {
       visitAtDateInput,
@@ -114,6 +119,8 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
       prevDayTelAtDateInput,
       prevDayTelAtStartTimeInput,
       prevDayTelAtEndTimeInput,
+      telApptDateInput,
+      telApptTimeInput,
       age: initialValues?.age ? String(initialValues.age) : "",
       gender: (initialValues?.gender as "A" | "B" | "AB" | "C") ?? "A",
       nameKana: initialValues?.nameKana ?? "",
@@ -243,64 +250,153 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
       )}
 
       <div className="grid gap-5 md:grid-cols-2">
-        {/* 訪問日時 */}
-        <Field label="訪問日時" required={!values.telAppointment} error={errors.visitAtDateInput?.[0] ?? errors.visitAtTimeInput?.[0]}>
-          <div className="grid gap-2 overflow-hidden">
-            <input
-              type="date"
-              className={dateInputClass}
-              value={values.visitAtDateInput}
-              onChange={(event) =>
-                setValues((prev) => ({
-                  ...prev,
-                  visitAtDateInput: event.target.value,
-                  prevDayTelAtDateInput: toPreviousDateInput(event.target.value)
-                }))
-              }
-            />
-            <input
-              type="text"
-              className={inputClass}
-              inputMode="numeric"
-              placeholder="--:--"
-              maxLength={5}
-              value={values.visitAtTimeInput}
-              onChange={(event) =>
-                setValues((prev) => ({
-                  ...prev,
-                  visitAtTimeInput: normalizeTimeInput(event.target.value)
-                }))
-              }
-            />
-          </div>
-        </Field>
-
-        {/* 翌日TEL日時 */}
-        <div className="md:col-span-2">
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-slate-800">☎【翌日】TEL日時</span>
-              <span className="text-xs text-slate-400">任意</span>
-              <span className="text-sm text-rose-600">※土日は原則不可 平日が理想</span>
-              <label className="flex items-center gap-1.5 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={values.telSkip ?? false}
-                  onChange={(event) => setValues((prev) => ({ ...prev, telSkip: event.target.checked }))}
-                  className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
-                />
-                <span className="text-sm text-slate-600">不要</span>
-              </label>
-            </div>
-            {errors.telAtDateInput?.[0] && <p className="text-sm text-rose-600">{errors.telAtDateInput[0]}</p>}
-            {errors.telAtStartTimeInput?.[0] && <p className="text-sm text-rose-600">{errors.telAtStartTimeInput[0]}</p>}
-            {!values.telSkip && (
+        {/* テレアポ時: TEL日時 */}
+        {values.telAppointment && (
+          <div className="md:col-span-2">
+            <Field label="☎️ TEL日時" required error={errors.telApptDateInput?.[0] ?? errors.telApptTimeInput?.[0]}>
               <div className="grid gap-2 overflow-hidden">
                 <input
                   type="date"
                   className={dateInputClass}
-                  value={values.telAtDateInput}
-                  onChange={(event) => setValues((prev) => ({ ...prev, telAtDateInput: event.target.value }))}
+                  value={values.telApptDateInput}
+                  onChange={(event) => setValues((prev) => ({ ...prev, telApptDateInput: event.target.value }))}
+                />
+                <input
+                  type="text"
+                  className={inputClass}
+                  inputMode="numeric"
+                  placeholder="--:--"
+                  maxLength={5}
+                  value={values.telApptTimeInput}
+                  onChange={(event) =>
+                    setValues((prev) => ({
+                      ...prev,
+                      telApptTimeInput: normalizeTimeInput(event.target.value)
+                    }))
+                  }
+                />
+              </div>
+            </Field>
+          </div>
+        )}
+
+        {/* 訪問日時（テレアポ時は非表示） */}
+        {!values.telAppointment && (
+          <Field label="訪問日時" required error={errors.visitAtDateInput?.[0] ?? errors.visitAtTimeInput?.[0]}>
+            <div className="grid gap-2 overflow-hidden">
+              <input
+                type="date"
+                className={dateInputClass}
+                value={values.visitAtDateInput}
+                onChange={(event) =>
+                  setValues((prev) => ({
+                    ...prev,
+                    visitAtDateInput: event.target.value,
+                    prevDayTelAtDateInput: toPreviousDateInput(event.target.value)
+                  }))
+                }
+              />
+              <input
+                type="text"
+                className={inputClass}
+                inputMode="numeric"
+                placeholder="--:--"
+                maxLength={5}
+                value={values.visitAtTimeInput}
+                onChange={(event) =>
+                  setValues((prev) => ({
+                    ...prev,
+                    visitAtTimeInput: normalizeTimeInput(event.target.value)
+                  }))
+                }
+              />
+            </div>
+          </Field>
+        )}
+
+        {/* 翌日TEL日時（テレアポ時は非表示） */}
+        {!values.telAppointment && (
+          <div className="md:col-span-2">
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-medium text-slate-800">☎【翌日】TEL日時</span>
+                <span className="text-xs text-slate-400">任意</span>
+                <span className="text-sm text-rose-600">※土日は原則不可 平日が理想</span>
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={values.telSkip ?? false}
+                    onChange={(event) => setValues((prev) => ({ ...prev, telSkip: event.target.checked }))}
+                    className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
+                  />
+                  <span className="text-sm text-slate-600">不要</span>
+                </label>
+              </div>
+              {errors.telAtDateInput?.[0] && <p className="text-sm text-rose-600">{errors.telAtDateInput[0]}</p>}
+              {errors.telAtStartTimeInput?.[0] && <p className="text-sm text-rose-600">{errors.telAtStartTimeInput[0]}</p>}
+              {!values.telSkip && (
+                <div className="grid gap-2 overflow-hidden">
+                  <input
+                    type="date"
+                    className={dateInputClass}
+                    value={values.telAtDateInput}
+                    onChange={(event) => setValues((prev) => ({ ...prev, telAtDateInput: event.target.value }))}
+                  />
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      className={inputClass}
+                      inputMode="numeric"
+                      placeholder="--:--"
+                      autoComplete="off"
+                      maxLength={5}
+                      value={values.telAtStartTimeInput}
+                      onChange={(event) => {
+                        const normalized = normalizeTimeInput(event.target.value);
+                        const end = addTwoHours(normalized);
+                        setValues((prev) => ({
+                          ...prev,
+                          telAtStartTimeInput: normalized,
+                          ...(end ? { telAtEndTimeInput: end } : {})
+                        }));
+                      }}
+                    />
+                    <span className="shrink-0 text-slate-400">-</span>
+                    <input
+                      type="text"
+                      className={inputClass}
+                      inputMode="numeric"
+                      placeholder="--:--"
+                      autoComplete="off"
+                      maxLength={5}
+                      value={values.telAtEndTimeInput}
+                      onChange={(event) =>
+                        setValues((prev) => ({
+                          ...prev,
+                          telAtEndTimeInput: normalizeTimeInput(event.target.value)
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+              )}
+              {values.telSkip && (
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-400">不要</div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* 前日TEL日時（テレアポ時は非表示） */}
+        {!values.telAppointment && (
+          <div className="md:col-span-2">
+            <Field label="☎【前日】TEL日時">
+              <div className="grid gap-2 overflow-hidden">
+                <input
+                  type="date"
+                  className={dateInputClass}
+                  value={values.prevDayTelAtDateInput}
+                  onChange={(event) => setValues((prev) => ({ ...prev, prevDayTelAtDateInput: event.target.value }))}
                 />
                 <div className="flex items-center gap-2">
                   <input
@@ -310,14 +406,14 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
                     placeholder="--:--"
                     autoComplete="off"
                     maxLength={5}
-                    value={values.telAtStartTimeInput}
+                    value={values.prevDayTelAtStartTimeInput}
                     onChange={(event) => {
                       const normalized = normalizeTimeInput(event.target.value);
                       const end = addTwoHours(normalized);
                       setValues((prev) => ({
                         ...prev,
-                        telAtStartTimeInput: normalized,
-                        ...(end ? { telAtEndTimeInput: end } : {})
+                        prevDayTelAtStartTimeInput: normalized,
+                        ...(end ? { prevDayTelAtEndTimeInput: end } : {})
                       }));
                     }}
                   />
@@ -329,72 +425,19 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
                     placeholder="--:--"
                     autoComplete="off"
                     maxLength={5}
-                    value={values.telAtEndTimeInput}
+                    value={values.prevDayTelAtEndTimeInput}
                     onChange={(event) =>
                       setValues((prev) => ({
                         ...prev,
-                        telAtEndTimeInput: normalizeTimeInput(event.target.value)
+                        prevDayTelAtEndTimeInput: normalizeTimeInput(event.target.value)
                       }))
                     }
                   />
                 </div>
               </div>
-            )}
-            {values.telSkip && (
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-400">不要</div>
-            )}
+            </Field>
           </div>
-        </div>
-
-        {/* 前日TEL日時 */}
-        <div className="md:col-span-2">
-          <Field label="☎【前日】TEL日時">
-            <div className="grid gap-2 overflow-hidden">
-              <input
-                type="date"
-                className={dateInputClass}
-                value={values.prevDayTelAtDateInput}
-                onChange={(event) => setValues((prev) => ({ ...prev, prevDayTelAtDateInput: event.target.value }))}
-              />
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  className={inputClass}
-                  inputMode="numeric"
-                  placeholder="--:--"
-                  autoComplete="off"
-                  maxLength={5}
-                  value={values.prevDayTelAtStartTimeInput}
-                  onChange={(event) => {
-                    const normalized = normalizeTimeInput(event.target.value);
-                    const end = addTwoHours(normalized);
-                    setValues((prev) => ({
-                      ...prev,
-                      prevDayTelAtStartTimeInput: normalized,
-                      ...(end ? { prevDayTelAtEndTimeInput: end } : {})
-                    }));
-                  }}
-                />
-                <span className="shrink-0 text-slate-400">-</span>
-                <input
-                  type="text"
-                  className={inputClass}
-                  inputMode="numeric"
-                  placeholder="--:--"
-                  autoComplete="off"
-                  maxLength={5}
-                  value={values.prevDayTelAtEndTimeInput}
-                  onChange={(event) =>
-                    setValues((prev) => ({
-                      ...prev,
-                      prevDayTelAtEndTimeInput: normalizeTimeInput(event.target.value)
-                    }))
-                  }
-                />
-              </div>
-            </div>
-          </Field>
-        </div>
+        )}
 
         {/* 年齢 */}
         <Field label="年齢" required error={errors.age?.[0]}>
