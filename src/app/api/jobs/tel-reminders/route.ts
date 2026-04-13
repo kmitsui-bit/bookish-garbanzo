@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { env } from "@/lib/env";
-import { sendTelReminderNotification } from "@/lib/notifications";
-import { getTelReminderWindow } from "@/lib/tel-reminder";
+import { sendTelReminderNotification, sendPrevDayTelReminderNotification } from "@/lib/notifications";
+import { getTelReminderWindow, isPrevDayTelDefaultTime } from "@/lib/tel-reminder";
 
 function isAuthorized(request: Request) {
   if (!env.cronSecret) {
@@ -34,13 +34,34 @@ export async function POST(request: Request) {
     }
   });
 
-  const results = await Promise.all(appointments.map((appointment) => sendTelReminderNotification(appointment)));
+  const prevDayAppointments = await prisma.appointment.findMany({
+    where: {
+      deletedAt: null,
+      prevDayTelReminderSentAt: null,
+      prevDayTelAt: {
+        gte: targetStart,
+        lte: targetEnd
+      }
+    }
+  });
+
+  // デフォルトの18:00-20:00設定のアポは前日TEL通知をスキップ
+  const prevDayTargets = prevDayAppointments.filter(
+    (a) => !isPrevDayTelDefaultTime(a.prevDayTelAt!, a.prevDayTelAtEnd)
+  );
+
+  const [telResults, prevDayResults] = await Promise.all([
+    Promise.all(appointments.map((a) => sendTelReminderNotification(a))),
+    Promise.all(prevDayTargets.map((a) => sendPrevDayTelReminderNotification(a)))
+  ]);
 
   return NextResponse.json({
     scannedAt: now,
     windowStart: targetStart,
     windowEnd: targetEnd,
-    matchedCount: appointments.length,
-    results
+    telMatchedCount: appointments.length,
+    telResults,
+    prevDayTelMatchedCount: prevDayTargets.length,
+    prevDayTelResults: prevDayResults
   });
 }

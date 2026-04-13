@@ -1,10 +1,10 @@
 import type { Appointment, NotificationLog } from "@prisma/client";
 import { env } from "@/lib/env";
 import { prisma } from "@/lib/db";
-import { buildFormSubmittedMessage, buildTelReminderMessage } from "@/lib/formatters";
+import { buildFormSubmittedMessage, buildTelReminderMessage, buildPrevDayTelReminderMessage } from "@/lib/formatters";
 import { getAppSettings } from "@/lib/settings";
 
-export type NotificationType = "form_submitted" | "tel_reminder";
+export type NotificationType = "form_submitted" | "tel_reminder" | "prev_day_tel_reminder";
 
 async function pushLineMessage(text: string, lineGroupId: string) {
   if (env.lineMockMode) {
@@ -125,6 +125,36 @@ export async function sendTelReminderNotification(appointment: Appointment) {
     const message = error instanceof Error ? error.message : "Unknown LINE error";
     await createNotificationLog(appointment.id, "tel_reminder", destinationId, payload, "failed", message);
     console.error("TEL reminder failed", error);
+    return { sent: false, error: message };
+  }
+}
+
+export async function sendPrevDayTelReminderNotification(appointment: Appointment) {
+  const settings = await getAppSettings();
+  if (!appointment.prevDayTelAt || appointment.prevDayTelReminderSentAt) {
+    return { skipped: true };
+  }
+
+  const alreadySent = await hasSuccessfulLog(appointment.id, "prev_day_tel_reminder");
+  if (alreadySent) {
+    return { skipped: true };
+  }
+
+  const payload = buildPrevDayTelReminderMessage(appointment);
+  const destinationId = settings.telReminderLineGroupId || settings.lineGroupId;
+
+  try {
+    await pushLineMessage(payload, destinationId);
+    await createNotificationLog(appointment.id, "prev_day_tel_reminder", destinationId, payload, "success");
+    await prisma.appointment.update({
+      where: { id: appointment.id },
+      data: { prevDayTelReminderSentAt: new Date() }
+    });
+    return { sent: true };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown LINE error";
+    await createNotificationLog(appointment.id, "prev_day_tel_reminder", destinationId, payload, "failed", message);
+    console.error("Prev day TEL reminder failed", error);
     return { sent: false, error: message };
   }
 }

@@ -39,9 +39,10 @@ model Appointment {
   selfCall                 Boolean           @default(false)
   telAppointment           Boolean           @default(false)
   telSkip                  Boolean           @default(false)
-  telReminderEnabled       Boolean           @default(true)
-  telReminderSentAt        DateTime?
-  formNotificationSentAt   DateTime?
+  telReminderEnabled           Boolean           @default(true)
+  telReminderSentAt            DateTime?
+  prevDayTelReminderSentAt     DateTime?
+  formNotificationSentAt       DateTime?
   createdAt                DateTime          @default(now())
   updatedAt                DateTime          @updatedAt
   deletedAt                DateTime?

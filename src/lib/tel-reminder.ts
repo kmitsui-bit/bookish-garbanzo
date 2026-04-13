@@ -1,11 +1,24 @@
 import type { Appointment } from "@prisma/client";
 import { addMinutes, endOfMinute, startOfMinute } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
+import { env } from "@/lib/env";
 
 export function getTelReminderWindow(now = new Date()) {
   return {
     targetStart: startOfMinute(addMinutes(now, 4)),
     targetEnd: endOfMinute(addMinutes(now, 5))
   };
+}
+
+/** 18:00-20:00（デフォルト設定）かどうか判定 */
+export function isPrevDayTelDefaultTime(
+  start: Date,
+  end: Date | null | undefined,
+  timezone = env.timezone
+): boolean {
+  const startTime = formatInTimeZone(start, timezone, "HH:mm");
+  const endTime = end ? formatInTimeZone(end, timezone, "HH:mm") : null;
+  return startTime === "18:00" && endTime === "20:00";
 }
 
 export function isTelReminderEligible(

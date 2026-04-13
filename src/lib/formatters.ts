@@ -1,5 +1,14 @@
 import type { Appointment, NotificationLog } from "@prisma/client";
 import { formatMonthDayTime, formatTimeOnly } from "@/lib/date";
+import { formatInTimeZone } from "date-fns-tz";
+import { env } from "@/lib/env";
+
+export function formatPhoneNumber(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length === 11) return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
+  if (digits.length === 10) return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+  return phone;
+}
 
 export function withHonorific(nameKana: string) {
   return nameKana.endsWith("様") ? nameKana : `${nameKana}様`;
@@ -31,7 +40,8 @@ export function buildFormSubmittedMessage(appointment: Appointment) {
   const salesName = appointment.salesName || "";
 
   const telAppoLabel = appointment.telAppointment ? " ☎️テレアポ" : "";
-  const line1 = `【${typeLabel}】${salesName}アポ${telAppoLabel}`;
+  const todayLabel = formatInTimeZone(new Date(), env.timezone, "MM/dd");
+  const line1 = `${todayLabel}【${typeLabel}】${salesName}アポ${telAppoLabel}`;
   const line2 = `${formatMonthDayTime(appointment.visitAt)} ${appointment.age}${appointment.gender} ${withHonorific(appointment.nameKana)}`;
 
   const telNextDay = (appointment as { telSkip?: boolean }).telSkip
@@ -48,7 +58,7 @@ export function buildFormSubmittedMessage(appointment: Appointment) {
     line1,
     line2,
     "",
-    `電話番号：${appointment.phoneNumber}`,
+    `電話番号：${formatPhoneNumber(appointment.phoneNumber)}`,
     telNextDay,
     telPrevDay,
     "",
@@ -72,8 +82,15 @@ export function buildTelReminderMessage(appointment: Appointment) {
   return `${formatMonthDayTime(appointment.telAt)} ${timeRange} ${salesName}アポ ${withHonorific(appointment.nameKana)} TELの時間だよ！`;
 }
 
+export function buildPrevDayTelReminderMessage(appointment: Appointment) {
+  const salesName = appointment.salesName || "";
+  const timeRange = telTimeRange(appointment.prevDayTelAt, appointment.prevDayTelAtEnd);
+  return `【前日TEL】${formatMonthDayTime(appointment.prevDayTelAt)} ${timeRange} ${salesName}アポ ${withHonorific(appointment.nameKana)} TELの時間だよ！`;
+}
+
 export function notificationLabel(type: NotificationLog["type"]) {
   if (type === "form_submitted") return "Form送信直後";
   if (type === "tel_reminder") return "TELリマインド";
+  if (type === "prev_day_tel_reminder") return "前日TELリマインド";
   return type;
 }
