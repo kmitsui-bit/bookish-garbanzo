@@ -85,7 +85,7 @@ export function buildTelReminderMessage(appointment: Appointment) {
 export function buildPrevDayTelReminderMessage(appointment: Appointment) {
   const salesName = appointment.salesName || "";
   const timeRange = telTimeRange(appointment.prevDayTelAt, appointment.prevDayTelAtEnd);
-  return `【前日TEL】${formatMonthDayTime(appointment.prevDayTelAt)} ${timeRange} ${salesName}アポ ${withHonorific(appointment.nameKana)} TELの時間だよ！`;
+  return `【前日TEL】${formatMonthDayTime(appointment.prevDayTelAt!)} ${timeRange} ${salesName}アポ ${withHonorific(appointment.nameKana)} TELの時間だよ！`;
 }
 
 export function notificationLabel(type: NotificationLog["type"]) {
