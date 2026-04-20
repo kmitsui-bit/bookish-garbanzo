@@ -45,7 +45,7 @@ export function buildFormSubmittedMessage(appointment: Appointment) {
   const line2 = `${formatMonthDayTime(appointment.visitAt)} ${appointment.age}${appointment.gender} ${withHonorific(appointment.nameKana)}`;
 
   const telNextDay = (appointment as { telSkip?: boolean }).telSkip
-    ? "☎【翌日】TEL日時：不要"
+    ? null
     : appointment.telAt
       ? `☎【翌日】TEL日時：${formatMonthDayTime(appointment.telAt)} ${telTimeRange(appointment.telAt, appointment.telAtEnd)}`
       : null;
