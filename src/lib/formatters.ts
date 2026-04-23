@@ -79,7 +79,11 @@ export function buildFormSubmittedMessage(appointment: Appointment) {
 export function buildTelReminderMessage(appointment: Appointment) {
   const salesName = appointment.salesName || "";
   const timeRange = telTimeRange(appointment.telAt, appointment.telAtEnd);
-  return `${formatMonthDayTime(appointment.telAt)} ${timeRange} ${salesName}アポ ${withHonorific(appointment.nameKana)} TELの時間だよ！`;
+  return [
+    `${formatMonthDayTime(appointment.visitAt)} 訪問予定`,
+    `${formatMonthDayTime(appointment.telAt)} ${timeRange}`,
+    `${salesName}アポ ${withHonorific(appointment.nameKana)} TELの時間だよ！`
+  ].join("\n");
 }
 
 export function buildPrevDayTelReminderMessage(appointment: Appointment) {
