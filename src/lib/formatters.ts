@@ -80,6 +80,7 @@ export function buildTelReminderMessage(appointment: Appointment) {
   const salesName = appointment.salesName || "";
   const timeRange = telTimeRange(appointment.telAt, appointment.telAtEnd);
   return [
+    "【翌日TEL】",
     `${formatMonthDayTime(appointment.visitAt)} 訪問予定`,
     `${formatMonthDayTime(appointment.telAt)} ${timeRange}`,
     `${salesName}アポ ${withHonorific(appointment.nameKana)} TELの時間だよ！`
@@ -89,7 +90,12 @@ export function buildTelReminderMessage(appointment: Appointment) {
 export function buildPrevDayTelReminderMessage(appointment: Appointment) {
   const salesName = appointment.salesName || "";
   const timeRange = telTimeRange(appointment.prevDayTelAt, appointment.prevDayTelAtEnd);
-  return `【前日TEL】${formatMonthDayTime(appointment.prevDayTelAt!)} ${timeRange} ${salesName}アポ ${withHonorific(appointment.nameKana)} TELの時間だよ！`;
+  return [
+    "【前日TEL】",
+    `${formatMonthDayTime(appointment.visitAt)} 訪問予定`,
+    `${formatMonthDayTime(appointment.prevDayTelAt!)} ${timeRange}`,
+    `${salesName}アポ ${withHonorific(appointment.nameKana)} TELの時間だよ！`
+  ].join("\n");
 }
 
 export function notificationLabel(type: NotificationLog["type"]) {
