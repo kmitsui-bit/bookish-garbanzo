@@ -78,23 +78,27 @@ export function buildFormSubmittedMessage(appointment: Appointment) {
 
 export function buildTelReminderMessage(appointment: Appointment) {
   const salesName = appointment.salesName || "";
+  const telDate = formatInTimeZone(appointment.telAt, env.timezone, "M/d");
   const timeRange = telTimeRange(appointment.telAt, appointment.telAtEnd);
   return [
     "【翌日TEL】",
     `${formatMonthDayTime(appointment.visitAt)} 訪問予定`,
-    `${formatMonthDayTime(appointment.telAt)} ${timeRange}`,
-    `${salesName}アポ ${withHonorific(appointment.nameKana)} TELの時間だよ！`
+    `${telDate} ${timeRange}`,
+    `${salesName}アポ ${withHonorific(appointment.nameKana)} TELの時間だよ！`,
+    formatPhoneNumber(appointment.phoneNumber)
   ].join("\n");
 }
 
 export function buildPrevDayTelReminderMessage(appointment: Appointment) {
   const salesName = appointment.salesName || "";
+  const telDate = formatInTimeZone(appointment.prevDayTelAt!, env.timezone, "M/d");
   const timeRange = telTimeRange(appointment.prevDayTelAt, appointment.prevDayTelAtEnd);
   return [
     "【前日TEL】",
     `${formatMonthDayTime(appointment.visitAt)} 訪問予定`,
-    `${formatMonthDayTime(appointment.prevDayTelAt!)} ${timeRange}`,
-    `${salesName}アポ ${withHonorific(appointment.nameKana)} TELの時間だよ！`
+    `${telDate} ${timeRange}`,
+    `${salesName}アポ ${withHonorific(appointment.nameKana)} TELの時間だよ！`,
+    formatPhoneNumber(appointment.phoneNumber)
   ].join("\n");
 }
 
