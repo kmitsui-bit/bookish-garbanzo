@@ -519,15 +519,14 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
           <input className={inputClass} value={values.gasCostLow} onChange={(event) => setValues((prev) => ({ ...prev, gasCostLow: event.target.value }))} />
         </Field>
 
-        <Field label="パネル年数" hint="〇年目　数字のみ入力">
+        <Field label="パネル年数" hint="〇年目　数字・,・-入力可">
           <input
             className={inputClass}
             inputMode="numeric"
-            pattern="\d*"
             placeholder="〇年目"
             value={values.panelYears}
             onChange={(event) => {
-              const v = event.target.value.replace(/[^\d]/g, "");
+              const v = event.target.value.replace(/[^\d,\-]/g, "");
               setValues((prev) => ({ ...prev, panelYears: v }));
             }}
           />
