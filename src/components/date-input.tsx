@@ -5,7 +5,7 @@ import { format, parse, isValid, startOfMonth, endOfMonth, startOfWeek, endOfWee
 import { ja } from "date-fns/locale";
 
 interface DateInputProps {
-  value: string;
+  value: string | undefined;
   onChange: (value: string) => void;
   className?: string;
   name?: string;
