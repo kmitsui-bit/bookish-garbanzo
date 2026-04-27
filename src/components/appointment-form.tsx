@@ -6,6 +6,7 @@ import type { Appointment } from "@prisma/client";
 import { toFormDate, toFormTime, getTomorrowDate, getDateMinusOne } from "@/lib/date";
 import type { AppointmentFormInput } from "@/lib/validation";
 import { cn } from "@/lib/utils";
+import { DateInput } from "@/components/date-input";
 
 type Props = {
   mode: "create" | "edit";
@@ -260,12 +261,10 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
           <div className="md:col-span-2">
             <Field label="☎️ TEL日時" required error={errors.telApptDateInput?.[0] ?? errors.telApptTimeInput?.[0]}>
               <div className="grid gap-2 overflow-hidden">
-                <input
-                  type="date"
-                  lang="en-GB"
+                <DateInput
                   className={dateInputClass}
                   value={values.telApptDateInput}
-                  onChange={(event) => setValues((prev) => ({ ...prev, telApptDateInput: event.target.value }))}
+                  onChange={(value) => setValues((prev) => ({ ...prev, telApptDateInput: value }))}
                 />
                 <input
                   type="text"
@@ -290,15 +289,14 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
         {!values.telAppointment && (
           <Field label="訪問日時" required error={errors.visitAtDateInput?.[0] ?? errors.visitAtTimeInput?.[0]}>
             <div className="grid gap-2 overflow-hidden">
-              <input
-                type="date"
+              <DateInput
                 className={dateInputClass}
                 value={values.visitAtDateInput}
-                onChange={(event) =>
+                onChange={(value) =>
                   setValues((prev) => ({
                     ...prev,
-                    visitAtDateInput: event.target.value,
-                    prevDayTelAtDateInput: toPreviousDateInput(event.target.value)
+                    visitAtDateInput: value,
+                    prevDayTelAtDateInput: toPreviousDateInput(value)
                   }))
                 }
               />
@@ -342,11 +340,10 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
               {errors.telAtStartTimeInput?.[0] && <p className="text-sm text-rose-600">{errors.telAtStartTimeInput[0]}</p>}
               {!values.telSkip && (
                 <div className="grid gap-2 overflow-hidden">
-                  <input
-                    type="date"
+                  <DateInput
                     className={dateInputClass}
                     value={values.telAtDateInput}
-                    onChange={(event) => setValues((prev) => ({ ...prev, telAtDateInput: event.target.value }))}
+                    onChange={(value) => setValues((prev) => ({ ...prev, telAtDateInput: value }))}
                   />
                   <div className="flex items-center gap-2">
                     <input
@@ -398,12 +395,10 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
           <div className="md:col-span-2">
             <Field label="☎【前日】TEL日時">
               <div className="grid gap-2 overflow-hidden">
-                <input
-                  type="date"
-                  lang="en-GB"
+                <DateInput
                   className={dateInputClass}
                   value={values.prevDayTelAtDateInput}
-                  onChange={(event) => setValues((prev) => ({ ...prev, prevDayTelAtDateInput: event.target.value }))}
+                  onChange={(value) => setValues((prev) => ({ ...prev, prevDayTelAtDateInput: value }))}
                 />
                 <div className="flex items-center gap-2">
                   <input
