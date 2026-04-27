@@ -262,6 +262,7 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
               <div className="grid gap-2 overflow-hidden">
                 <input
                   type="date"
+                  lang="en-GB"
                   className={dateInputClass}
                   value={values.telApptDateInput}
                   onChange={(event) => setValues((prev) => ({ ...prev, telApptDateInput: event.target.value }))}
@@ -399,6 +400,7 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
               <div className="grid gap-2 overflow-hidden">
                 <input
                   type="date"
+                  lang="en-GB"
                   className={dateInputClass}
                   value={values.prevDayTelAtDateInput}
                   onChange={(event) => setValues((prev) => ({ ...prev, prevDayTelAtDateInput: event.target.value }))}

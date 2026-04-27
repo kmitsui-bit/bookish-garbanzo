@@ -52,12 +52,14 @@ export default async function AppointmentsPage({ searchParams }: { searchParams:
           <input
             name="startDate"
             type="date"
+            lang="en-GB"
             defaultValue={typeof params.startDate === "string" ? params.startDate : ""}
             className="rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-sky-400"
           />
           <input
             name="endDate"
             type="date"
+            lang="en-GB"
             defaultValue={typeof params.endDate === "string" ? params.endDate : ""}
             className="rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-sky-400"
           />
