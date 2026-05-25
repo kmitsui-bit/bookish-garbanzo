@@ -19,7 +19,7 @@ function line(label: string, value: string | null | undefined) {
 }
 
 function highLow(label: string, high: string | null | undefined, low: string | null | undefined) {
-  if (high && low) return `${label}：${high}-${low}`;
+  if (high && low) return `${label}：high ${high} - low ${low}`;
   if (high) return `${label}：${high}`;
   if (low) return `${label}：${low}`;
   return null;
@@ -41,22 +41,28 @@ export function buildFormSubmittedMessage(appointment: Appointment) {
 
   const telAppoLabel = appointment.telAppointment ? " ☎️テレアポ" : "";
   const todayLabel = formatInTimeZone(new Date(), env.timezone, "MM/dd");
-  const line1 = `${todayLabel}【${typeLabel}】${salesName}アポ${telAppoLabel}`;
-  const line2 = `${formatMonthDayTime(appointment.visitAt)} ${appointment.age}${appointment.gender} ${withHonorific(appointment.nameKana)}`;
+  const line1 = `【${typeLabel}】${salesName}アポ${telAppoLabel}`;
+  const line2 = `獲得日：${todayLabel}`;
+  const line3 = `訪問日：${formatMonthDayTime(appointment.visitAt)}`;
+  const line4 = `${appointment.age}${appointment.gender} ${withHonorific(appointment.nameKana)}`;
 
+  const telAtDate = appointment.telAt ? formatInTimeZone(appointment.telAt, env.timezone, "M/d") : null;
   const telNextDay = (appointment as { telSkip?: boolean }).telSkip
     ? null
-    : appointment.telAt
-      ? `☎【翌日】TEL日時：${formatMonthDayTime(appointment.telAt)} ${telTimeRange(appointment.telAt, appointment.telAtEnd)}`
+    : appointment.telAt && telAtDate
+      ? `☎【翌日】TEL日時：${telAtDate} ${telTimeRange(appointment.telAt, appointment.telAtEnd)}`
       : null;
 
-  const telPrevDay = appointment.prevDayTelAt
-    ? `☎【前日】TEL日時：${formatMonthDayTime(appointment.prevDayTelAt)} ${telTimeRange(appointment.prevDayTelAt, appointment.prevDayTelAtEnd)}`
+  const prevDayDate = appointment.prevDayTelAt ? formatInTimeZone(appointment.prevDayTelAt, env.timezone, "M/d") : null;
+  const telPrevDay = appointment.prevDayTelAt && prevDayDate
+    ? `☎【前日】TEL日時：${prevDayDate} ${telTimeRange(appointment.prevDayTelAt, appointment.prevDayTelAtEnd)}`
     : null;
 
   const parts = [
     line1,
     line2,
+    line3,
+    line4,
     "",
     `電話番号：${formatPhoneNumber(appointment.phoneNumber)}`,
     telNextDay,

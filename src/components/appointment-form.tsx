@@ -234,9 +234,14 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
         <select
           className={inputClass}
           value={values.appointmentType}
-          onChange={(event) =>
-            setValues((prev) => ({ ...prev, appointmentType: event.target.value as "蓄電池単体" | "創蓄☀️" | "その他" }))
-          }
+          onChange={(event) => {
+            const t = event.target.value as "蓄電池単体" | "創蓄☀️" | "その他";
+            setValues((prev) => ({
+              ...prev,
+              appointmentType: t,
+              specialConditions: t === "その他" ? prev.appointmentTypeOther : prev.specialConditions
+            }));
+          }}
         >
           <option value="蓄電池単体">蓄電池単体</option>
           <option value="創蓄☀️">創蓄☀️</option>
@@ -250,7 +255,11 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
             className={inputClass}
             placeholder="種別を入力してください"
             value={values.appointmentTypeOther}
-            onChange={(event) => setValues((prev) => ({ ...prev, appointmentTypeOther: event.target.value }))}
+            onChange={(event) => setValues((prev) => ({
+              ...prev,
+              appointmentTypeOther: event.target.value,
+              specialConditions: event.target.value
+            }))}
           />
         </Field>
       )}
@@ -519,16 +528,12 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
           <input className={inputClass} value={values.gasCostLow} onChange={(event) => setValues((prev) => ({ ...prev, gasCostLow: event.target.value }))} />
         </Field>
 
-        <Field label="パネル年数" hint="〇年目　数字・,・-入力可">
+        <Field label="パネル年数">
           <input
             className={inputClass}
-            inputMode="numeric"
             placeholder="〇年目"
             value={values.panelYears}
-            onChange={(event) => {
-              const v = event.target.value.replace(/[^\d,\-]/g, "");
-              setValues((prev) => ({ ...prev, panelYears: v }));
-            }}
+            onChange={(event) => setValues((prev) => ({ ...prev, panelYears: event.target.value }))}
           />
         </Field>
 
