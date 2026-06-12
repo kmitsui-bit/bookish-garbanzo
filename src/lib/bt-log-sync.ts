@@ -6,6 +6,7 @@ async function callApoSync(params: {
   activityDate: Date;
   telAppointment: boolean;
   gender: string;
+  scheduledVisit?: boolean;
   undo?: boolean;
 }): Promise<void> {
   if (!env.btLogApiUrl || !env.btLogIntegrationToken) return;
@@ -24,6 +25,7 @@ async function callApoSync(params: {
         activityDate,
         telAppointment: params.telAppointment,
         gender: params.gender,
+        scheduledVisit: params.scheduledVisit ?? false,
         undo: params.undo ?? false
       })
     });
@@ -37,6 +39,7 @@ export function syncApoToActivityLog(params: {
   activityDate: Date;
   telAppointment: boolean;
   gender: string;
+  scheduledVisit?: boolean;
 }): Promise<void> {
   return callApoSync(params);
 }
@@ -46,6 +49,7 @@ export function undoApoSync(params: {
   activityDate: Date;
   telAppointment: boolean;
   gender: string;
+  scheduledVisit?: boolean;
 }): Promise<void> {
   return callApoSync({ ...params, undo: true });
 }

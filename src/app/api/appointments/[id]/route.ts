@@ -102,7 +102,8 @@ export async function DELETE(_: Request, context: { params: Promise<{ id: string
     staffName: existing.salesName ?? "",
     activityDate: existing.createdAt,
     telAppointment: existing.telAppointment,
-    gender: existing.gender
+    gender: existing.gender,
+    scheduledVisit: !!existing.visitAt
   });
 
   return NextResponse.json({ success: true });

@@ -66,7 +66,8 @@ export async function POST(request: Request) {
     staffName: appointment.salesName ?? "",
     activityDate: appointment.createdAt,
     telAppointment: appointment.telAppointment,
-    gender: appointment.gender
+    gender: appointment.gender,
+    scheduledVisit: !!appointment.visitAt
   });
 
   return NextResponse.json({
