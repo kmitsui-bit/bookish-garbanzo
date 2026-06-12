@@ -12,6 +12,7 @@ type Props = {
   mode: "create" | "edit";
   initialValues?: Partial<Appointment>;
   appointmentId?: string;
+  staffNames?: string[];
 };
 
 type FieldErrors = Partial<Record<keyof AppointmentFormInput, string[]>>;
@@ -95,7 +96,7 @@ function addTwoHours(timeStr: string): string {
   return `${String(newH).padStart(2, "0")}:${String(newM).padStart(2, "0")}`;
 }
 
-export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
+export function AppointmentForm({ mode, initialValues, appointmentId, staffNames = [] }: Props) {
   const router = useRouter();
 
   const initialForm = useMemo<AppointmentFormInput>(() => {
@@ -219,13 +220,26 @@ export function AppointmentForm({ mode, initialValues, appointmentId }: Props) {
       </label>
 
       {/* 営業マン名 */}
-      <Field label="営業マン名" hint="漢字で入力" required error={errors.salesName?.[0]}>
-        <input
-          className={inputClass}
-          placeholder="例：三井"
-          value={values.salesName}
-          onChange={(event) => setValues((prev) => ({ ...prev, salesName: event.target.value }))}
-        />
+      <Field label="営業マン名" required error={errors.salesName?.[0]}>
+        {staffNames.length > 0 ? (
+          <select
+            className={inputClass}
+            value={values.salesName}
+            onChange={(event) => setValues((prev) => ({ ...prev, salesName: event.target.value }))}
+          >
+            <option value="">-- 選択してください --</option>
+            {staffNames.map((name) => (
+              <option key={name} value={name}>{name}</option>
+            ))}
+          </select>
+        ) : (
+          <input
+            className={inputClass}
+            placeholder="例：三井"
+            value={values.salesName}
+            onChange={(event) => setValues((prev) => ({ ...prev, salesName: event.target.value }))}
+          />
+        )}
       </Field>
 
       {/* 種別プルダウン */}

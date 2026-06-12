@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { parseAppointmentPayload } from "@/lib/validation";
 import { sendFormSubmittedNotification } from "@/lib/notifications";
+import { syncApoToActivityLog } from "@/lib/bt-log-sync";
 
 export async function GET() {
   const appointments = await prisma.appointment.findMany({
@@ -60,6 +61,13 @@ export async function POST(request: Request) {
   });
 
   const notificationResult = await sendFormSubmittedNotification(appointment);
+
+  void syncApoToActivityLog({
+    staffName: appointment.salesName ?? "",
+    activityDate: appointment.createdAt,
+    telAppointment: appointment.telAppointment,
+    gender: appointment.gender
+  });
 
   return NextResponse.json({
     appointment,
