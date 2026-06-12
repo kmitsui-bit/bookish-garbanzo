@@ -3,6 +3,7 @@ import type { Appointment, NotificationLog } from "@prisma/client";
 import { formatCreatedAt, formatMonthDayTime } from "@/lib/date";
 import { StatusBadge } from "@/components/status-badge";
 import { withHonorific } from "@/lib/formatters";
+import { DeleteAppointmentButton } from "@/components/delete-appointment-button";
 
 type AppointmentRow = Appointment & {
   notificationLogs: NotificationLog[];
@@ -38,7 +39,8 @@ export function AppointmentsTable({ appointments }: { appointments: AppointmentR
                   "詳細",
                   "通知ステータス",
                   "TEL通知対象",
-                  "更新日時"
+                  "更新日時",
+                  ""
                 ].map((header) => (
                   <th key={header} className="whitespace-nowrap px-4 py-3 font-medium">
                     {header}
@@ -78,6 +80,9 @@ export function AppointmentsTable({ appointments }: { appointments: AppointmentR
                     </StatusBadge>
                   </td>
                   <td className="px-4 py-3">{formatCreatedAt(appointment.updatedAt)}</td>
+                  <td className="px-4 py-3">
+                    <DeleteAppointmentButton id={appointment.id} stayOnPage />
+                  </td>
                 </tr>
               ))}
             </tbody>

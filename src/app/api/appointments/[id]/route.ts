@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { parseAppointmentPayload } from "@/lib/validation";
+import { undoApoSync } from "@/lib/bt-log-sync";
 
 export async function GET(_: Request, context: { params: Promise<{ id: string }> }) {
   const { id } = await context.params;
@@ -83,9 +84,25 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
 
 export async function DELETE(_: Request, context: { params: Promise<{ id: string }> }) {
   const { id } = await context.params;
+
+  const existing = await prisma.appointment.findFirst({
+    where: { id, deletedAt: null }
+  });
+
+  if (!existing) {
+    return NextResponse.json({ message: "Not found" }, { status: 404 });
+  }
+
   await prisma.appointment.update({
     where: { id },
     data: { deletedAt: new Date() }
+  });
+
+  void undoApoSync({
+    staffName: existing.salesName ?? "",
+    activityDate: existing.createdAt,
+    telAppointment: existing.telAppointment,
+    gender: existing.gender
   });
 
   return NextResponse.json({ success: true });

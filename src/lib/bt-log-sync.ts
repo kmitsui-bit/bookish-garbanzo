@@ -1,11 +1,12 @@
 import { env } from "@/lib/env";
 import { formatInTimeZone } from "date-fns-tz";
 
-export async function syncApoToActivityLog(params: {
+async function callApoSync(params: {
   staffName: string;
   activityDate: Date;
   telAppointment: boolean;
   gender: string;
+  undo?: boolean;
 }): Promise<void> {
   if (!env.btLogApiUrl || !env.btLogIntegrationToken) return;
 
@@ -22,12 +23,31 @@ export async function syncApoToActivityLog(params: {
         staffName: params.staffName,
         activityDate,
         telAppointment: params.telAppointment,
-        gender: params.gender
+        gender: params.gender,
+        undo: params.undo ?? false
       })
     });
   } catch (err) {
     console.error("[bt-log-sync] apo-sync failed:", err);
   }
+}
+
+export function syncApoToActivityLog(params: {
+  staffName: string;
+  activityDate: Date;
+  telAppointment: boolean;
+  gender: string;
+}): Promise<void> {
+  return callApoSync(params);
+}
+
+export function undoApoSync(params: {
+  staffName: string;
+  activityDate: Date;
+  telAppointment: boolean;
+  gender: string;
+}): Promise<void> {
+  return callApoSync({ ...params, undo: true });
 }
 
 export async function fetchStaffNames(): Promise<string[]> {
@@ -41,8 +61,11 @@ export async function fetchStaffNames(): Promise<string[]> {
 
     if (!res.ok) return [];
 
-    const data = await res.json() as { staff?: { displayName: string }[] };
-    return (data.staff ?? []).map((s) => s.displayName).filter(Boolean);
+    const data = await res.json() as { staff?: { displayName: string; isApoEnabled: boolean }[] };
+    return (data.staff ?? [])
+      .filter((s) => s.isApoEnabled)
+      .map((s) => s.displayName)
+      .filter(Boolean);
   } catch {
     return [];
   }

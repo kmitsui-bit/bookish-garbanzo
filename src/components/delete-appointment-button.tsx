@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 
-export function DeleteAppointmentButton({ id }: { id: string }) {
+export function DeleteAppointmentButton({ id, stayOnPage = false }: { id: string; stayOnPage?: boolean }) {
   const router = useRouter();
 
   async function handleDelete() {
@@ -18,8 +18,12 @@ export function DeleteAppointmentButton({ id }: { id: string }) {
       return;
     }
 
-    router.push("/appointments");
-    router.refresh();
+    if (stayOnPage) {
+      router.refresh();
+    } else {
+      router.push("/appointments");
+      router.refresh();
+    }
   }
 
   return (
