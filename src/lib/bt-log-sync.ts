@@ -14,7 +14,7 @@ async function callApoSync(params: {
   const activityDate = formatInTimeZone(params.activityDate, env.timezone, "yyyy-MM-dd");
 
   try {
-    await fetch(`${env.btLogApiUrl}/api/integrations/apo-sync`, {
+    const res = await fetch(`${env.btLogApiUrl}/api/integrations/apo-sync`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -29,6 +29,10 @@ async function callApoSync(params: {
         undo: params.undo ?? false
       })
     });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      console.error(`[bt-log-sync] apo-sync ${res.status}:`, text);
+    }
   } catch (err) {
     console.error("[bt-log-sync] apo-sync failed:", err);
   }
