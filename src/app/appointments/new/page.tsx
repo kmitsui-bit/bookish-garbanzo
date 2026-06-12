@@ -2,6 +2,8 @@ import { AppShell } from "@/components/app-shell";
 import { AppointmentForm } from "@/components/appointment-form";
 import { fetchStaffNames } from "@/lib/bt-log-sync";
 
+export const dynamic = "force-dynamic";
+
 export default async function NewAppointmentPage() {
   const staffNames = await fetchStaffNames();
 
