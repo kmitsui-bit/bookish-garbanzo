@@ -61,9 +61,9 @@ export async function fetchStaffNames(): Promise<string[]> {
 
     if (!res.ok) return [];
 
-    const data = await res.json() as { staff?: { displayName: string; isApoEnabled: boolean }[] };
+    const data = await res.json() as { staff?: { displayName: string; isApoEnabled: boolean; department: string | null }[] };
     return (data.staff ?? [])
-      .filter((s) => s.isApoEnabled)
+      .filter((s) => s.department === 'energy')
       .map((s) => s.displayName)
       .filter(Boolean);
   } catch {
