@@ -56,7 +56,7 @@ export async function fetchStaffNames(): Promise<string[]> {
   try {
     const res = await fetch(`${env.btLogApiUrl}/api/integrations/staff?status=active`, {
       headers: { "Authorization": `Bearer ${env.btLogIntegrationToken}` },
-      next: { revalidate: 300 }
+      cache: "no-store"
     });
 
     if (!res.ok) return [];
