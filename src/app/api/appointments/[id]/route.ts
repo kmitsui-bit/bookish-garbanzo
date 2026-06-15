@@ -66,6 +66,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       panelYears: parsed.data.panelYears,
       gasOrEcoCute: parsed.data.gasOrEcoCute,
       specialConditions: parsed.data.specialConditions,
+      coordinates: parsed.data.coordinates,
       detail: parsed.data.detail,
       appointmentType: parsed.data.appointmentType,
       appointmentTypeOther: parsed.data.appointmentTypeOther,

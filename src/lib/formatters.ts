@@ -75,6 +75,7 @@ export function buildFormSubmittedMessage(appointment: Appointment) {
     line("給湯設備", appointment.gasOrEcoCute),
     line("ガス使用設備", appointment.gasUsageEquipment),
     line("⭐️特殊条件", appointment.specialConditions),
+    line("📍座標", appointment.coordinates),
     "",
     appointment.detail ? `詳細：\n${appointment.detail}` : null
   ].filter((p) => p !== null && p !== undefined);

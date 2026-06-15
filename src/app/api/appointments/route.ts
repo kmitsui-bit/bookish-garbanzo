@@ -48,6 +48,7 @@ export async function POST(request: Request) {
       panelYears: parsed.data.panelYears,
       gasOrEcoCute: parsed.data.gasOrEcoCute,
       specialConditions: parsed.data.specialConditions,
+      coordinates: parsed.data.coordinates,
       detail: parsed.data.detail,
       appointmentType: parsed.data.appointmentType,
       appointmentTypeOther: parsed.data.appointmentTypeOther,

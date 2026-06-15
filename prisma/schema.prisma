@@ -21,6 +21,7 @@ model Appointment {
   panelYears               String?
   gasOrEcoCute             String?
   specialConditions        String?
+  coordinates              String?
   detail                   String?
   electricityCostHigh      String?
   electricityCostLow       String?

@@ -40,6 +40,7 @@ export const appointmentFormSchema = z
     panelYears: z.string().optional().default(""),
     gasOrEcoCute: z.string().optional().default(""),
     specialConditions: z.string().optional().default(""),
+    coordinates: z.string().optional().default(""),
     detail: z.string().optional().default(""),
     selfCall: z.boolean().optional().default(false),
     telAppointment: z.boolean().optional().default(false),

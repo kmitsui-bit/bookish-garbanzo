@@ -42,6 +42,7 @@ const emptyValues: AppointmentFormInput = {
   panelYears: "",
   gasOrEcoCute: "",
   specialConditions: "",
+  coordinates: "",
   detail: "",
   selfCall: false,
   telAppointment: false,
@@ -137,6 +138,7 @@ export function AppointmentForm({ mode, initialValues, appointmentId, staffNames
       panelYears: initialValues?.panelYears ?? "",
       gasOrEcoCute: initialValues?.gasOrEcoCute ?? "",
       specialConditions: initialValues?.specialConditions ?? "",
+      coordinates: initialValues?.coordinates ?? "",
       detail: initialValues?.detail ?? "",
       selfCall: initialValues?.selfCall ?? false,
       telAppointment: initialValues?.telAppointment ?? false,
@@ -577,6 +579,15 @@ export function AppointmentForm({ mode, initialValues, appointmentId, staffNames
           className={cn(inputClass, "min-h-28 resize-y")}
           value={values.specialConditions}
           onChange={(event) => setValues((prev) => ({ ...prev, specialConditions: event.target.value }))}
+        />
+      </Field>
+
+      <Field label="📍座標">
+        <input
+          className={inputClass}
+          placeholder="Google マップのURLまたは座標"
+          value={values.coordinates ?? ""}
+          onChange={(event) => setValues((prev) => ({ ...prev, coordinates: event.target.value }))}
         />
       </Field>
 
