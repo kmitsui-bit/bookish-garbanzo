@@ -582,10 +582,10 @@ export function AppointmentForm({ mode, initialValues, appointmentId, staffNames
         />
       </Field>
 
-      <Field label="📍座標">
+      <Field label="📍座標" required error={errors.coordinates?.[0]}>
         <input
           className={inputClass}
-          placeholder="Google マップのURLまたは座標"
+          placeholder="座標"
           value={values.coordinates ?? ""}
           onChange={(event) => setValues((prev) => ({ ...prev, coordinates: event.target.value }))}
         />
