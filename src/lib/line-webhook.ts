@@ -33,8 +33,12 @@ export function verifyLineWebhookSignature(body: string, signature: string | nul
   return crypto.timingSafeEqual(left, right);
 }
 
-export function parseLineWebhookPayload(body: string) {
-  return JSON.parse(body) as LineWebhookPayload;
+export function parseLineWebhookPayload(body: string): LineWebhookPayload {
+  try {
+    return JSON.parse(body) as LineWebhookPayload;
+  } catch {
+    return { events: [] };
+  }
 }
 
 export function extractGroupIds(payload: LineWebhookPayload) {

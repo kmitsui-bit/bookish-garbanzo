@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
 type Props = {
   initialValues: {
@@ -13,100 +12,54 @@ type Props = {
 };
 
 export function SettingsForm({ initialValues }: Props) {
-  const router = useRouter();
-  const [values, setValues] = useState(initialValues);
   const [message, setMessage] = useState("");
-  const [saving, setSaving] = useState(false);
   const [checking, setChecking] = useState(false);
-
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setSaving(true);
-    setMessage("");
-
-    const response = await fetch("/api/settings", {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(values)
-    });
-
-    const data = await response.json();
-    setSaving(false);
-
-    if (!response.ok) {
-      setMessage(data.message ?? "設定の保存に失敗しました");
-      return;
-    }
-
-    setMessage("設定を保存しました");
-    router.refresh();
-  }
 
   async function handleLineCheck() {
     setChecking(true);
     setMessage("");
 
-    const response = await fetch("/api/line/check", {
-      method: "POST"
-    });
-
-    const data = await response.json();
+    const response = await fetch("/api/line/check", { method: "POST" });
+    const data = await response.json() as { message?: string };
     setChecking(false);
     setMessage(data.message ?? (response.ok ? "接続確認に成功しました" : "接続確認に失敗しました"));
   }
 
-  const inputClass =
-    "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:ring-4 focus:ring-sky-100";
+  const displayClass =
+    "w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 shadow-sm";
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5 rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
-      <label className="space-y-2">
-        <span className="text-sm font-medium text-slate-800">LINEグループID（アポ通知用）</span>
-        <input
-          className={inputClass}
-          value={values.lineGroupId}
-          onChange={(event) => setValues((prev) => ({ ...prev, lineGroupId: event.target.value }))}
-        />
-      </label>
+    <div className="space-y-5 rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="space-y-2">
+        <p className="text-sm font-medium text-slate-800">LINEグループID（アポ通知用）</p>
+        <p className="text-xs text-slate-500">変更するには環境変数 LINE_GROUP_ID を更新してください。</p>
+        <div className={displayClass}>{initialValues.lineGroupId || "（未設定）"}</div>
+      </div>
 
-      <label className="space-y-2">
-        <span className="text-sm font-medium text-slate-800">LINEグループID（TELリマインド用）</span>
-        <p className="text-xs text-slate-500">TEL5分前通知を送る別グループのID。空欄の場合はアポ通知用グループに送ります。</p>
-        <input
-          className={inputClass}
-          value={values.telReminderLineGroupId}
-          onChange={(event) => setValues((prev) => ({ ...prev, telReminderLineGroupId: event.target.value }))}
-        />
-      </label>
-
-      <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-        タイムゾーン: <span className="font-semibold text-slate-900">{values.timezone}</span>
+      <div className="space-y-2">
+        <p className="text-sm font-medium text-slate-800">LINEグループID（TELリマインド用）</p>
+        <p className="text-xs text-slate-500">変更するには環境変数 TEL_REMINDER_LINE_GROUP_ID を更新してください。</p>
+        <div className={displayClass}>{initialValues.telReminderLineGroupId || "（未設定、アポ通知用と共用）"}</div>
       </div>
 
       <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-        通知モード: <span className="font-semibold text-slate-900">{values.lineMockMode ? "モック送信" : "実LINE送信"}</span>
+        タイムゾーン: <span className="font-semibold text-slate-900">{initialValues.timezone}</span>
+      </div>
+
+      <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+        通知モード: <span className="font-semibold text-slate-900">{initialValues.lineMockMode ? "モック送信" : "実LINE送信"}</span>
       </div>
 
       {message ? <p className="text-sm text-slate-600">{message}</p> : null}
 
-      <div className="flex flex-wrap gap-3">
-        <button
-          disabled={saving}
-          className="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-300"
-        >
-          {saving ? "保存中..." : "設定を保存"}
-        </button>
-        <button
-          type="button"
-          onClick={handleLineCheck}
-          disabled={checking}
-          className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 disabled:cursor-not-allowed disabled:text-slate-400"
-        >
-          {checking ? "確認中..." : "LINE接続チェック"}
-        </button>
-      </div>
-    </form>
+      <button
+        type="button"
+        onClick={handleLineCheck}
+        disabled={checking}
+        className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 disabled:cursor-not-allowed disabled:text-slate-400"
+      >
+        {checking ? "確認中..." : "LINE接続チェック"}
+      </button>
+    </div>
   );
 }

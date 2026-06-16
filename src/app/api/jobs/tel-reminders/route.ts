@@ -6,9 +6,8 @@ import { getTelReminderWindow, isPrevDayTelDefaultTime } from "@/lib/tel-reminde
 
 function isAuthorized(request: Request) {
   if (!env.cronSecret) {
-    return true;
+    return false;
   }
-
   const bearer = request.headers.get("authorization");
   return bearer === `Bearer ${env.cronSecret}`;
 }
