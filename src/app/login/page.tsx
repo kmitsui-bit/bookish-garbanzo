@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -18,13 +18,14 @@ export default function LoginPage() {
     const response = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password })
+      body: JSON.stringify({ email, password })
     });
 
     setLoading(false);
 
     if (!response.ok) {
-      setError("IDまたはパスワードが正しくありません");
+      const data = await response.json().catch(() => ({})) as { message?: string };
+      setError(data.message ?? "メールアドレスまたはパスワードが正しくありません");
       return;
     }
 
@@ -48,13 +49,13 @@ export default function LoginPage() {
           className="space-y-4 rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm"
         >
           <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-800">ログインID</label>
+            <label className="text-sm font-medium text-slate-800">メールアドレス</label>
             <input
               className={inputClass}
-              type="text"
-              autoComplete="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
