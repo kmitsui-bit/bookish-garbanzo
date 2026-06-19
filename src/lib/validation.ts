@@ -18,7 +18,7 @@ export const appointmentFormSchema = z
     prevDayTelAtEndTimeInput: z.string().optional().default("20:00"),
     telApptDateInput: z.string().optional().default(""),
     telApptTimeInput: z.string().optional().default(""),
-    age: z.string().min(1, "年齢は必須です").regex(digitsRegex, "年齢は数字のみで入力してください"),
+    age: z.string().min(1, "年齢は必須です"),
     gender: z.enum(["A", "B", "AB", "C"], {
       errorMap: () => ({ message: "性別を選択してください" })
     }),
@@ -141,7 +141,6 @@ export function parseAppointmentPayload(input: unknown) {
       success: true as const,
       data: {
         ...parsed.data,
-        age: Number(parsed.data.age),
         visitAt: telApptAt,
         telAt: null,
         telAtEnd: null,
@@ -203,7 +202,6 @@ export function parseAppointmentPayload(input: unknown) {
     success: true as const,
     data: {
       ...parsed.data,
-      age: Number(parsed.data.age),
       visitAt: visitAt ?? telAt ?? new Date(),
       telAt,
       telAtEnd,

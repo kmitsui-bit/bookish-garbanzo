@@ -12,7 +12,7 @@ model Appointment {
   id                       String            @id @default(cuid())
   visitAt                  DateTime
   telAt                    DateTime
-  age                      Int
+  age                      String
   gender                   String
   nameKana                 String
   phoneNumber              String

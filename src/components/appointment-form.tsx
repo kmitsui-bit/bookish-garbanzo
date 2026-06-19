@@ -470,7 +470,6 @@ export function AppointmentForm({ mode, initialValues, appointmentId, staffNames
         <Field label="年齢" required error={errors.age?.[0]}>
           <input
             className={inputClass}
-            inputMode="numeric"
             value={values.age}
             onChange={(event) => setValues((prev) => ({ ...prev, age: event.target.value }))}
           />
