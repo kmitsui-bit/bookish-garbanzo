@@ -63,7 +63,9 @@ export async function POST(request: Request) {
 
   const notificationResult = await sendFormSubmittedNotification(appointment);
 
-  void syncApoToActivityLog({
+  // await 必須: fire-and-forget にすると応答後に関数が凍結され、送信途中で失われる
+  const btLogResult = await syncApoToActivityLog({
+    appointmentId: appointment.id,
     staffName: appointment.salesName ?? "",
     activityDate: appointment.createdAt,
     telAppointment: appointment.telAppointment,
@@ -71,8 +73,13 @@ export async function POST(request: Request) {
     scheduledVisit: !!appointment.visitAt
   });
 
+  if (!btLogResult.ok) {
+    console.error(`[appointments] BT.log 未反映 (id=${appointment.id}):`, btLogResult.reason);
+  }
+
   return NextResponse.json({
     appointment,
-    notificationResult
+    notificationResult,
+    btLogSynced: btLogResult.ok
   });
 }

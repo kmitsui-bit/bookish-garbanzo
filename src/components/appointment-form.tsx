@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Appointment } from "@prisma/client";
 import { toFormDate, toFormTime, getTomorrowDate, getDateMinusOne } from "@/lib/date";
@@ -16,6 +16,54 @@ type Props = {
 };
 
 type FieldErrors = Partial<Record<keyof AppointmentFormInput, string[]>>;
+
+/** エラーサマリーの表示順・表示名（フォームの並び順に合わせる） */
+const ERROR_FIELD_LABELS: Array<[keyof AppointmentFormInput, string]> = [
+  ["salesName", "営業マン名"],
+  ["appointmentTypeOther", "種別（自由記入）"],
+  ["telApptDateInput", "☎️ TEL日時"],
+  ["telApptTimeInput", "☎️ TEL日時"],
+  ["visitAtDateInput", "訪問日時"],
+  ["visitAtTimeInput", "訪問日時"],
+  ["telAtDateInput", "☎【翌日】TEL日時"],
+  ["telAtStartTimeInput", "☎【翌日】TEL日時"],
+  ["telAtEndTimeInput", "☎【翌日】TEL日時"],
+  ["prevDayTelAtDateInput", "☎【前日】TEL日時"],
+  ["prevDayTelAtStartTimeInput", "☎【前日】TEL日時"],
+  ["prevDayTelAtEndTimeInput", "☎【前日】TEL日時"],
+  ["age", "年齢"],
+  ["gender", "性別"],
+  ["nameKana", "名前"],
+  ["phoneNumber", "電話番号"],
+  ["coordinates", "📍座標"]
+];
+
+function buildErrorSummary(errors: FieldErrors) {
+  const summary: string[] = [];
+  const seen = new Set<string>();
+
+  for (const [key, label] of ERROR_FIELD_LABELS) {
+    for (const message of errors[key] ?? []) {
+      const text = `${label}：${message}`;
+      if (seen.has(text)) continue;
+      seen.add(text);
+      summary.push(text);
+    }
+  }
+
+  // ラベル未定義のフィールドも取りこぼさない
+  const known = new Set(ERROR_FIELD_LABELS.map(([key]) => key));
+  for (const [key, messages] of Object.entries(errors)) {
+    if (known.has(key as keyof AppointmentFormInput)) continue;
+    for (const message of messages ?? []) {
+      if (seen.has(message)) continue;
+      seen.add(message);
+      summary.push(message);
+    }
+  }
+
+  return summary;
+}
 
 const emptyValues: AppointmentFormInput = {
   visitAtDateInput: "",
@@ -154,6 +202,17 @@ export function AppointmentForm({ mode, initialValues, appointmentId, staffNames
   const [errors, setErrors] = useState<FieldErrors>({});
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
+  const [failed, setFailed] = useState(false);
+  const [failureCount, setFailureCount] = useState(0);
+  const feedbackRef = useRef<HTMLDivElement>(null);
+
+  const errorSummary = useMemo(() => buildErrorSummary(errors), [errors]);
+
+  // エラー内容が見えないまま止まらないよう、送信ボタン手前まで自動でスクロール
+  useEffect(() => {
+    if (failureCount === 0) return;
+    feedbackRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [failureCount]);
 
   const submitUrl = mode === "create" ? "/api/appointments" : `/api/appointments/${appointmentId}`;
   const method = mode === "create" ? "POST" : "PATCH";
@@ -163,6 +222,7 @@ export function AppointmentForm({ mode, initialValues, appointmentId, staffNames
     setSubmitting(true);
     setErrors({});
     setMessage("");
+    setFailed(false);
 
     const response = await fetch(submitUrl, {
       method,
@@ -176,6 +236,8 @@ export function AppointmentForm({ mode, initialValues, appointmentId, staffNames
     if (!response.ok) {
       setErrors(data.errors ?? {});
       setMessage(data.message ?? "保存に失敗しました");
+      setFailed(true);
+      setFailureCount((prev) => prev + 1);
       return;
     }
 
@@ -467,9 +529,10 @@ export function AppointmentForm({ mode, initialValues, appointmentId, staffNames
         )}
 
         {/* 年齢 */}
-        <Field label="年齢" required error={errors.age?.[0]}>
+        <Field label="年齢" hint="自由入力" required error={errors.age?.[0]}>
           <input
             className={inputClass}
+            placeholder="60代、30後半 など"
             value={values.age}
             onChange={(event) => setValues((prev) => ({ ...prev, age: event.target.value }))}
           />
@@ -599,7 +662,24 @@ export function AppointmentForm({ mode, initialValues, appointmentId, staffNames
       </Field>
 
       {message ? (
-        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">{message}</div>
+        <div ref={feedbackRef} className="scroll-mt-6">
+          {failed ? (
+            <div role="alert" aria-live="assertive" className="rounded-2xl border border-rose-300 bg-rose-50 px-4 py-3">
+              <p className="text-sm font-semibold text-rose-700">⚠️ {message}</p>
+              {errorSummary.length > 0 ? (
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-rose-700">
+                  {errorSummary.map((text) => (
+                    <li key={text}>{text}</li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+          ) : (
+            <div role="status" aria-live="polite" className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+              {message}
+            </div>
+          )}
+        </div>
       ) : null}
 
       <button

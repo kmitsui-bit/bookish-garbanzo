@@ -44,9 +44,10 @@ export async function POST(request: Request) {
     }
   });
 
-  // デフォルトの18:00-20:00設定のアポは前日TEL通知をスキップ
+  // 「前日 かつ 18:00-20:00」のデフォルト設定のままのアポのみ前日TEL通知をスキップ
+  // （前日以外の日付が指定されている場合は 18:00 開始でも通知する）
   const prevDayTargets = prevDayAppointments.filter(
-    (a) => !isPrevDayTelDefaultTime(a.prevDayTelAt!, a.prevDayTelAtEnd)
+    (a) => !isPrevDayTelDefaultTime(a.prevDayTelAt!, a.prevDayTelAtEnd, a.visitAt)
   );
 
   const [telResults, prevDayResults] = await Promise.all([

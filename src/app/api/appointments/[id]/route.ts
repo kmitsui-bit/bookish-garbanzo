@@ -99,7 +99,9 @@ export async function DELETE(_: Request, context: { params: Promise<{ id: string
     data: { deletedAt: new Date() }
   });
 
-  void undoApoSync({
+  // await 必須: fire-and-forget にすると応答後に関数が凍結され、送信途中で失われる
+  const btLogResult = await undoApoSync({
+    appointmentId: existing.id,
     staffName: existing.salesName ?? "",
     activityDate: existing.createdAt,
     telAppointment: existing.telAppointment,
@@ -107,5 +109,9 @@ export async function DELETE(_: Request, context: { params: Promise<{ id: string
     scheduledVisit: !!existing.visitAt
   });
 
-  return NextResponse.json({ success: true });
+  if (!btLogResult.ok) {
+    console.error(`[appointments] BT.log 取消未反映 (id=${existing.id}):`, btLogResult.reason);
+  }
+
+  return NextResponse.json({ success: true, btLogSynced: btLogResult.ok });
 }

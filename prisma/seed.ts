@@ -18,7 +18,7 @@ async function main() {
     data: {
       visitAt: sampleVisit,
       telAt: sampleTel,
-      age: 30,
+      age: "30",
       gender: "A",
       nameKana: "ミウラ",
       phoneNumber: "08083759395",
@@ -37,7 +37,7 @@ async function main() {
     data: {
       visitAt: subDays(sampleVisit, 1),
       telAt: subDays(sampleTel, 1),
-      age: 45,
+      age: "45",
       gender: "AB",
       nameKana: "タナカ",
       phoneNumber: "09012345678",

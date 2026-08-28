@@ -2,6 +2,7 @@ import type { Appointment, NotificationLog } from "@prisma/client";
 import { formatMonthDayTime, formatTimeOnly } from "@/lib/date";
 import { formatInTimeZone } from "date-fns-tz";
 import { env } from "@/lib/env";
+import { isPrevDayTelDefaultTime } from "@/lib/tel-reminder";
 
 export function formatPhoneNumber(phone: string): string {
   const digits = phone.replace(/\D/g, "");
@@ -23,6 +24,19 @@ function highLow(label: string, high: string | null | undefined, low: string | n
   if (high) return `${label}：${high}`;
   if (low) return `${label}：${low}`;
   return null;
+}
+
+/**
+ * パネル年数は自由入力のため、「5」でも「5年目」でも「5年目」に揃える。
+ * （末尾が「年目」「年」以外の自由記述はそのまま表示する）
+ */
+function formatPanelYears(panelYears: string | null | undefined): string | null {
+  const value = panelYears?.trim();
+  if (!value) return null;
+  if (value.endsWith("年目")) return value;
+  if (value.endsWith("年")) return `${value}目`;
+  if (/^\d+$/.test(value)) return `${value}年目`;
+  return value;
 }
 
 function telTimeRange(start: Date | null | undefined, end: Date | null | undefined): string {
@@ -54,8 +68,12 @@ export function buildFormSubmittedMessage(appointment: Appointment) {
       : null;
 
   const prevDayDate = appointment.prevDayTelAt ? formatInTimeZone(appointment.prevDayTelAt, env.timezone, "M/d") : null;
+  // 前日以外の日付、またはデフォルトの 18:00-20:00 以外の時間帯なら ⚠️ を付けて目立たせる
+  const prevDayWarn = appointment.prevDayTelAt
+    && !isPrevDayTelDefaultTime(appointment.prevDayTelAt, appointment.prevDayTelAtEnd, appointment.visitAt)
+    ? "⚠️" : "";
   const telPrevDay = appointment.prevDayTelAt && prevDayDate
-    ? `☎【前日】TEL日時：${prevDayDate} ${telTimeRange(appointment.prevDayTelAt, appointment.prevDayTelAtEnd)}`
+    ? `${prevDayWarn}☎【前日】TEL日時：${prevDayDate} ${telTimeRange(appointment.prevDayTelAt, appointment.prevDayTelAtEnd)}`
     : null;
 
   const parts = [
@@ -71,7 +89,7 @@ export function buildFormSubmittedMessage(appointment: Appointment) {
     highLow("電気代", appointment.electricityCostHigh, appointment.electricityCostLow),
     highLow("売電", appointment.sellPowerHigh, appointment.sellPowerLow),
     highLow("ガス代", appointment.gasCostHigh, appointment.gasCostLow),
-    appointment.panelYears ? `パネル年数：${appointment.panelYears}年目` : null,
+    line("パネル年数", formatPanelYears(appointment.panelYears)),
     line("給湯設備", appointment.gasOrEcoCute),
     line("ガス使用設備", appointment.gasUsageEquipment),
     line("⭐️特殊条件", appointment.specialConditions),

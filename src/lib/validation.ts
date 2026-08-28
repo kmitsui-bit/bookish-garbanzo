@@ -2,7 +2,6 @@ import { z } from "zod";
 import { parseDateTimeInput, getDateMinusOne } from "@/lib/date";
 
 const kataKanaRegex = /^[ァ-ヶー　\s]+$/;
-const digitsRegex = /^\d+$/;
 const timePattern = /^([01]?\d|2[0-3]):([0-5]\d)$/;
 
 export const appointmentFormSchema = z
