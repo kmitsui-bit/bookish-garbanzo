@@ -5,7 +5,7 @@ import { fetchStaffNames } from "@/lib/bt-log-sync";
 export const dynamic = "force-dynamic";
 
 export default async function NewAppointmentPage() {
-  const staffNames = await fetchStaffNames();
+  const staff = await fetchStaffNames();
 
   return (
     <AppShell currentPath="/appointments/new">
@@ -14,7 +14,7 @@ export default async function NewAppointmentPage() {
           <p className="text-sm font-semibold uppercase tracking-[0.24em] text-sky-600">Form</p>
           <h2 className="text-3xl font-semibold text-slate-900">アポイント登録</h2>
         </div>
-        <AppointmentForm mode="create" staffNames={staffNames} />
+        <AppointmentForm mode="create" staffNames={staff.names} staffError={staff.error} />
       </section>
     </AppShell>
   );

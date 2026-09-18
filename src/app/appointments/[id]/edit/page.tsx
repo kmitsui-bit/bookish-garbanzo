@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export default async function EditAppointmentPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [appointment, staffNames] = await Promise.all([
+  const [appointment, staff] = await Promise.all([
     getAppointmentById(id),
     fetchStaffNames()
   ]);
@@ -24,7 +24,13 @@ export default async function EditAppointmentPage({ params }: { params: Promise<
           <p className="text-sm font-semibold uppercase tracking-[0.24em] text-sky-600">Edit</p>
           <h2 className="text-3xl font-semibold text-slate-900">アポイント編集</h2>
         </div>
-        <AppointmentForm mode="edit" appointmentId={appointment.id} initialValues={appointment} staffNames={staffNames} />
+        <AppointmentForm
+          mode="edit"
+          appointmentId={appointment.id}
+          initialValues={appointment}
+          staffNames={staff.names}
+          staffError={staff.error}
+        />
       </section>
     </AppShell>
   );

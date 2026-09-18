@@ -9,5 +9,6 @@ export const env = {
   cronSecret: process.env.CRON_SECRET ?? "",
   authSecret: process.env.AUTH_SECRET ?? "change-me-in-production",
   btLogApiUrl: process.env.BT_LOG_API_URL ?? "",
-  btLogIntegrationToken: process.env.BT_LOG_INTEGRATION_TOKEN ?? ""
+  btLogIntegrationToken: process.env.BT_LOG_INTEGRATION_TOKEN ?? "",
+  btLogOrgId: process.env.BT_LOG_ORG_ID ?? ""
 };

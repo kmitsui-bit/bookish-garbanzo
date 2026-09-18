@@ -159,7 +159,25 @@ LINE_CHANNEL_SECRET=...
 LINE_GROUP_ID=
 LINE_MOCK_MODE=false
 CRON_SECRET=任意の長い文字列
+AUTH_SECRET=任意の長い文字列
+BT_LOG_API_URL=https://エネルギー事業部管理システムのドメイン
+BT_LOG_INTEGRATION_TOKEN=管理システム側の INTEGRATION_API_TOKEN と同じ値
 ```
+
+#### BT.log（エネルギー事業部管理システム）連携について
+
+- `BT_LOG_API_URL` / `BT_LOG_INTEGRATION_TOKEN`：ログインの委任認証と、アポ実績の同期、
+  営業マン名プルダウンのすべてに使用する。**設定が必要なのはこの2つだけ。**
+- 営業マン名の選択肢は、管理システムで `department = 'energy'` かつ在籍中のスタッフのみが対象。
+
+##### orgId について（通常は設定不要）
+
+スタッフ一覧API（`/api/integrations/staff`）は組織スコープ必須で、`orgId` がないと 400 を返す。
+アプリは `staff-revenue` API（`orgId` 任意・応答に `orgId` を含む）を使って
+**エネルギー事業部の在籍者が最も多い組織を自動判別**するため、通常は何も設定しなくてよい。
+
+複数組織があって自動判別を上書きしたい場合のみ、任意で `BT_LOG_ORG_ID` に UUID を設定する。
+設定値で 0 件だった場合は自動判別にフォールバックする。
 
 ### デプロイ後の流れ
 

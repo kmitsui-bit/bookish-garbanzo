@@ -13,6 +13,8 @@ type Props = {
   initialValues?: Partial<Appointment>;
   appointmentId?: string;
   staffNames?: string[];
+  /** スタッフ一覧を取得できなかった場合の理由（取得できた場合は null） */
+  staffError?: string | null;
 };
 
 type FieldErrors = Partial<Record<keyof AppointmentFormInput, string[]>>;
@@ -145,7 +147,7 @@ function addTwoHours(timeStr: string): string {
   return `${String(newH).padStart(2, "0")}:${String(newM).padStart(2, "0")}`;
 }
 
-export function AppointmentForm({ mode, initialValues, appointmentId, staffNames = [] }: Props) {
+export function AppointmentForm({ mode, initialValues, appointmentId, staffNames = [], staffError = null }: Props) {
   const router = useRouter();
 
   const initialForm = useMemo<AppointmentFormInput>(() => {
@@ -297,12 +299,20 @@ export function AppointmentForm({ mode, initialValues, appointmentId, staffNames
             ))}
           </select>
         ) : (
-          <input
-            className={inputClass}
-            placeholder="例：三井"
-            value={values.salesName}
-            onChange={(event) => setValues((prev) => ({ ...prev, salesName: event.target.value }))}
-          />
+          <div className="space-y-2">
+            {/* 一覧を取得できないときだけ自由入力に切り替わる。原因が分かるよう明示する */}
+            <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
+              スタッフ一覧を取得できなかったため、一時的に自由入力になっています
+              {staffError ? `（${staffError}）` : ""}。
+              BT.log に登録されている表記と完全に一致する名前を入力してください。
+            </p>
+            <input
+              className={inputClass}
+              placeholder="例：三井"
+              value={values.salesName}
+              onChange={(event) => setValues((prev) => ({ ...prev, salesName: event.target.value }))}
+            />
+          </div>
         )}
       </Field>
 
