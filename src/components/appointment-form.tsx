@@ -279,7 +279,7 @@ export function AppointmentForm({ mode, initialValues, appointmentId, staffNames
         />
         <div>
           <p className="text-sm font-medium text-slate-900">テレアポ（自分でTEL）</p>
-          <p className="text-xs text-slate-500">ON の場合は 5分前のTEL通知対象から除外されます</p>
+          <p className="text-xs text-slate-500">ON の場合は TEL通知対象から除外されます</p>
         </div>
       </label>
 

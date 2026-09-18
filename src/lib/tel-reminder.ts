@@ -4,10 +4,14 @@ import { formatInTimeZone } from "date-fns-tz";
 import { getDateMinusOne } from "@/lib/date";
 import { env } from "@/lib/env";
 
+/**
+ * TEL予定時刻ちょうどに通知するための検索窓。
+ * 現在の分をカバーしつつ、ジョブ実行のズレで取りこぼさないよう 1 分前まで遡る。
+ */
 export function getTelReminderWindow(now = new Date()) {
   return {
-    targetStart: startOfMinute(addMinutes(now, 4)),
-    targetEnd: endOfMinute(addMinutes(now, 5))
+    targetStart: startOfMinute(addMinutes(now, -1)),
+    targetEnd: endOfMinute(now)
   };
 }
 

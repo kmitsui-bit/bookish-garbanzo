@@ -8,15 +8,15 @@ const nowWithSeconds = new Date("2026-03-26T12:00:45.000Z");
 describe("tel reminder helpers", () => {
   it("creates a minute-aligned reminder window", () => {
     const { targetStart, targetEnd } = getTelReminderWindow(now);
-    expect(targetStart.toISOString()).toBe("2026-03-26T12:04:00.000Z");
-    expect(targetEnd.toISOString()).toBe("2026-03-26T12:05:59.999Z");
+    expect(targetStart.toISOString()).toBe("2026-03-26T11:59:00.000Z");
+    expect(targetEnd.toISOString()).toBe("2026-03-26T12:00:59.999Z");
   });
 
   it("accepts appointments inside the window", () => {
     expect(
       isTelReminderEligible(
         {
-          telAt: addMinutes(now, 5),
+          telAt: now,
           selfCall: false,
           telReminderEnabled: true,
           telReminderSentAt: null,
@@ -31,7 +31,7 @@ describe("tel reminder helpers", () => {
     expect(
       isTelReminderEligible(
         {
-          telAt: new Date("2026-03-26T12:05:00.000Z"),
+          telAt: new Date("2026-03-26T12:00:00.000Z"),
           selfCall: false,
           telReminderEnabled: true,
           telReminderSentAt: null,
@@ -46,7 +46,7 @@ describe("tel reminder helpers", () => {
     expect(
       isTelReminderEligible(
         {
-          telAt: addMinutes(now, 5),
+          telAt: now,
           selfCall: true,
           telReminderEnabled: true,
           telReminderSentAt: null,
@@ -59,7 +59,7 @@ describe("tel reminder helpers", () => {
     expect(
       isTelReminderEligible(
         {
-          telAt: addMinutes(now, 5),
+          telAt: now,
           selfCall: false,
           telReminderEnabled: true,
           telReminderSentAt: new Date(),
@@ -72,7 +72,7 @@ describe("tel reminder helpers", () => {
     expect(
       isTelReminderEligible(
         {
-          telAt: addMinutes(now, 8),
+          telAt: addMinutes(now, 3),
           selfCall: false,
           telReminderEnabled: true,
           telReminderSentAt: null,
@@ -85,7 +85,7 @@ describe("tel reminder helpers", () => {
     expect(
       isTelReminderEligible(
         {
-          telAt: new Date("2026-03-26T12:06:00.000Z"),
+          telAt: new Date("2026-03-26T12:01:00.000Z"),
           selfCall: false,
           telReminderEnabled: true,
           telReminderSentAt: null,
