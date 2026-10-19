@@ -46,6 +46,15 @@ function telTimeRange(start: Date | null | undefined, end: Date | null | undefin
   return e ? `${s}-${e}` : s;
 }
 
+/** 性別ABのときの「TEL番号」。その他 は自由入力の中身を使う。AB以外・未選択は null */
+export function telNumberLabel(appointment: Appointment): string | null {
+  if (appointment.gender !== "AB") return null;
+  const type = appointment.telNumberType;
+  if (!type) return null;
+  if (type === "その他") return appointment.telNumberTypeOther || "その他";
+  return type;
+}
+
 export function buildFormSubmittedMessage(appointment: Appointment) {
   const typeLabel = appointment.appointmentType === "その他"
     ? appointment.appointmentTypeOther || "その他"
@@ -83,6 +92,7 @@ export function buildFormSubmittedMessage(appointment: Appointment) {
     line4,
     "",
     `電話番号：${formatPhoneNumber(appointment.phoneNumber)}`,
+    line("TEL番号", telNumberLabel(appointment)),
     telNextDay,
     telPrevDay,
     "",
@@ -110,8 +120,9 @@ export function buildTelReminderMessage(appointment: Appointment) {
     `${formatMonthDayTime(appointment.visitAt)} 訪問予定`,
     `${telDate} ${timeRange}`,
     `${salesName}アポ ${withHonorific(appointment.nameKana)} TELの時間だよ！`,
-    formatPhoneNumber(appointment.phoneNumber)
-  ].join("\n");
+    formatPhoneNumber(appointment.phoneNumber),
+    line("TEL番号", telNumberLabel(appointment))
+  ].filter((p) => p !== null).join("\n");
 }
 
 export function buildPrevDayTelReminderMessage(appointment: Appointment) {
@@ -123,8 +134,9 @@ export function buildPrevDayTelReminderMessage(appointment: Appointment) {
     `${formatMonthDayTime(appointment.visitAt)} 訪問予定`,
     `${telDate} ${timeRange}`,
     `${salesName}アポ ${withHonorific(appointment.nameKana)} TELの時間だよ！`,
-    formatPhoneNumber(appointment.phoneNumber)
-  ].join("\n");
+    formatPhoneNumber(appointment.phoneNumber),
+    line("TEL番号", telNumberLabel(appointment))
+  ].filter((p) => p !== null).join("\n");
 }
 
 export function notificationLabel(type: NotificationLog["type"]) {

@@ -37,6 +37,9 @@ model Appointment {
   appointmentTypeOther     String?
   salesName                String            @default("")
   genderDetail             String?
+  // 性別ABのときの「TEL番号」: A / B / 固定電話 / その他
+  telNumberType            String?
+  telNumberTypeOther       String?
   selfCall                 Boolean           @default(false)
   telAppointment           Boolean           @default(false)
   telSkip                  Boolean           @default(false)

@@ -19,6 +19,8 @@ const baseAppointment = {
   age: "30",
   gender: "A",
   genderDetail: null,
+  telNumberType: null,
+  telNumberTypeOther: null,
   nameKana: "ミウラ",
   phoneNumber: "08083759395",
   // 旧カラム（現在フォーマッタは参照しない）
@@ -150,5 +152,67 @@ describe("formatters", () => {
       const message = buildFormSubmittedMessage(withPrevDayTel("2026-03-20T09:00:00.000Z", null));
       expect(message).toContain("⚠️☎【前日】TEL日時：3/20 18:00");
     });
+  });
+});
+
+describe("TEL番号（性別AB）", () => {
+  it("AB なら通知に TEL番号 行が入る", () => {
+    const message = buildFormSubmittedMessage({
+      ...baseAppointment,
+      gender: "AB",
+      telNumberType: "固定電話"
+    } as never);
+
+    expect(message).toContain("TEL番号：固定電話");
+  });
+
+  it("その他 なら自由入力の中身を出す", () => {
+    const message = buildFormSubmittedMessage({
+      ...baseAppointment,
+      gender: "AB",
+      telNumberType: "その他",
+      telNumberTypeOther: "息子さんの携帯"
+    } as never);
+
+    expect(message).toContain("TEL番号：息子さんの携帯");
+  });
+
+  it("TELリマインドにも TEL番号 が入る", () => {
+    const telMessage = buildTelReminderMessage({
+      ...baseAppointment,
+      gender: "AB",
+      telNumberType: "B"
+    } as never);
+    expect(telMessage).toContain("TEL番号：B");
+
+    const prevDayMessage = buildPrevDayTelReminderMessage({
+      ...baseAppointment,
+      gender: "AB",
+      telNumberType: "B",
+      prevDayTelAt: new Date("2026-03-20T09:00:00.000Z"),
+      prevDayTelAtEnd: new Date("2026-03-20T11:00:00.000Z")
+    } as never);
+    expect(prevDayMessage).toContain("TEL番号：B");
+  });
+
+  it("AB 以外ではリマインドの文面も変わらない", () => {
+    const telMessage = buildTelReminderMessage({
+      ...baseAppointment,
+      gender: "A",
+      telNumberType: "B"
+    } as never);
+    expect(telMessage).not.toContain("TEL番号");
+    // 末尾は従来どおり電話番号で終わる
+    expect(telMessage.trimEnd().endsWith("080-8375-9395")).toBe(true);
+  });
+
+  it("AB 以外では TEL番号 行を出さない（既存の文面を変えない）", () => {
+    const message = buildFormSubmittedMessage({
+      ...baseAppointment,
+      gender: "A",
+      telNumberType: "固定電話"
+    } as never);
+
+    expect(message).not.toContain("TEL番号");
   });
 });

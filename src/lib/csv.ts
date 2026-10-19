@@ -1,5 +1,6 @@
 import type { Appointment } from "@prisma/client";
 import { formatCreatedAt, formatMonthDayTime } from "@/lib/date";
+import { telNumberLabel } from "@/lib/formatters";
 
 const headers = [
   "作成日時",
@@ -8,6 +9,7 @@ const headers = [
   "名前",
   "年齢",
   "性別",
+  "TEL番号",
   "電話番号",
   "電気代",
   "売電",
@@ -33,6 +35,7 @@ export function appointmentsToCsv(appointments: Appointment[]) {
     `${appointment.nameKana}様`,
     String(appointment.age),
     appointment.gender,
+    telNumberLabel(appointment) ?? "",
     appointment.phoneNumber,
     appointment.electricityCost ?? "",
     appointment.sellPower ?? "",

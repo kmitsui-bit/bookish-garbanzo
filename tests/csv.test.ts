@@ -17,6 +17,8 @@ describe("appointmentsToCsv", () => {
         age: "30",
         gender: "A",
         genderDetail: null,
+        telNumberType: null,
+        telNumberTypeOther: null,
         nameKana: "ミウラ",
         phoneNumber: "08083759395",
         electricityCost: "6000円",

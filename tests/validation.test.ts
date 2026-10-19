@@ -79,7 +79,13 @@ describe("parseAppointmentPayload", () => {
   });
 
   it("disables reminder for self-call appointments", () => {
-    const result = parseAppointmentPayload({ ...basePayload, gender: "AB", selfCall: true });
+    // 性別AB は TEL番号 が必須になったため併せて指定する（このテストの主題は selfCall）
+    const result = parseAppointmentPayload({
+      ...basePayload,
+      gender: "AB",
+      telNumberType: "A",
+      selfCall: true
+    });
 
     expect(result.success).toBe(true);
     if (result.success) {
@@ -130,6 +136,56 @@ describe("parseAppointmentPayload", () => {
       expect(result.data.visitAt.toISOString()).toBe("2026-03-30T01:00:00.000Z");
       expect(result.data.telAt).toBeNull();
       expect(result.data.telReminderEnabled).toBe(false);
+    }
+  });
+});
+
+describe("TEL番号（性別AB）", () => {
+  it("AB なら TEL番号 が必須", () => {
+    const result = parseAppointmentPayload({ ...basePayload, gender: "AB" });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(fieldErrorsOf(result).telNumberType).toContain("TEL番号は必須です");
+    }
+  });
+
+  it("AB で A / B / 固定電話 を選べば通る", () => {
+    for (const telNumberType of ["A", "B", "固定電話"]) {
+      const result = parseAppointmentPayload({ ...basePayload, gender: "AB", telNumberType });
+      expect(result.success).toBe(true);
+      if (result.success) expect(result.data.telNumberType).toBe(telNumberType);
+    }
+  });
+
+  it("AB で その他 を選んだら自由入力も必須", () => {
+    const blank = parseAppointmentPayload({
+      ...basePayload,
+      gender: "AB",
+      telNumberType: "その他",
+      telNumberTypeOther: "   "
+    });
+
+    expect(blank.success).toBe(false);
+    if (!blank.success) {
+      expect(fieldErrorsOf(blank).telNumberTypeOther).toContain("TEL番号（その他）を入力してください");
+    }
+
+    const filled = parseAppointmentPayload({
+      ...basePayload,
+      gender: "AB",
+      telNumberType: "その他",
+      telNumberTypeOther: "息子さんの携帯"
+    });
+
+    expect(filled.success).toBe(true);
+    if (filled.success) expect(filled.data.telNumberTypeOther).toBe("息子さんの携帯");
+  });
+
+  it("AB 以外では TEL番号 を求めない", () => {
+    for (const gender of ["A", "B", "C"]) {
+      const result = parseAppointmentPayload({ ...basePayload, gender });
+      expect(result.success).toBe(true);
     }
   });
 });

@@ -8,6 +8,13 @@ import { getAppointmentById } from "@/lib/appointment-queries";
 import { formatCreatedAt, formatMonthDayTime } from "@/lib/date";
 import { notificationLabel, withHonorific } from "@/lib/formatters";
 
+/** 性別ABのときの「TEL番号」表示用。その他 は自由入力の中身を見せる */
+function telNumberLabel(appointment: { telNumberType: string | null; telNumberTypeOther: string | null }) {
+  if (!appointment.telNumberType) return "-";
+  if (appointment.telNumberType === "その他") return appointment.telNumberTypeOther || "その他";
+  return appointment.telNumberType;
+}
+
 export default async function AppointmentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const appointment = await getAppointmentById(id);
@@ -46,6 +53,9 @@ export default async function AppointmentDetailPage({ params }: { params: Promis
                 ["☎TEL日時", formatMonthDayTime(appointment.telAt)],
                 ["年齢", String(appointment.age)],
                 ["性別", appointment.gender],
+                ...(appointment.gender === "AB"
+                  ? [["TEL番号", telNumberLabel(appointment)] as [string, string]]
+                  : []),
                 ["電話番号", appointment.phoneNumber],
                 ["電気代", appointment.electricityCost || "-"],
                 ["売電", appointment.sellPower || "-"],

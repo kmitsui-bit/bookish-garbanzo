@@ -35,6 +35,8 @@ const ERROR_FIELD_LABELS: Array<[keyof AppointmentFormInput, string]> = [
   ["prevDayTelAtEndTimeInput", "☎【前日】TEL日時"],
   ["age", "年齢"],
   ["gender", "性別"],
+  ["telNumberType", "TEL番号"],
+  ["telNumberTypeOther", "TEL番号（その他）"],
   ["nameKana", "名前"],
   ["phoneNumber", "電話番号"],
   ["coordinates", "📍座標"]
@@ -100,7 +102,9 @@ const emptyValues: AppointmentFormInput = {
   appointmentType: "蓄電池単体",
   appointmentTypeOther: "",
   salesName: "",
-  genderDetail: ""
+  genderDetail: "",
+  telNumberType: "",
+  telNumberTypeOther: ""
 };
 
 function Field({
@@ -196,7 +200,10 @@ export function AppointmentForm({ mode, initialValues, appointmentId, staffNames
       appointmentType: (initialValues?.appointmentType as "蓄電池単体" | "創蓄☀️" | "その他") ?? "蓄電池単体",
       appointmentTypeOther: initialValues?.appointmentTypeOther ?? "",
       salesName: initialValues?.salesName ?? "",
-      genderDetail: initialValues?.genderDetail ?? ""
+      genderDetail: initialValues?.genderDetail ?? "",
+      telNumberType:
+        (initialValues?.telNumberType as "" | "A" | "B" | "固定電話" | "その他") ?? "",
+      telNumberTypeOther: initialValues?.telNumberTypeOther ?? ""
     };
   }, [initialValues]);
 
@@ -553,9 +560,16 @@ export function AppointmentForm({ mode, initialValues, appointmentId, staffNames
           <select
             className={inputClass}
             value={values.gender}
-            onChange={(event) =>
-              setValues((prev) => ({ ...prev, gender: event.target.value as "A" | "B" | "AB" | "C" }))
-            }
+            onChange={(event) => {
+              const g = event.target.value as "A" | "B" | "AB" | "C";
+              setValues((prev) => ({
+                ...prev,
+                gender: g,
+                // AB 以外に変えたら TEL番号 の入力値を残さない
+                telNumberType: g === "AB" ? prev.telNumberType : "",
+                telNumberTypeOther: g === "AB" ? prev.telNumberTypeOther : ""
+              }));
+            }}
           >
             <option value="A">A</option>
             <option value="B">B</option>
@@ -563,6 +577,45 @@ export function AppointmentForm({ mode, initialValues, appointmentId, staffNames
             <option value="C">C</option>
           </select>
         </Field>
+
+        {values.gender === "AB" && (
+          <div className="md:col-span-2 space-y-4">
+            <Field label="TEL番号" required error={errors.telNumberType?.[0]}>
+              <select
+                className={inputClass}
+                value={values.telNumberType ?? ""}
+                onChange={(event) =>
+                  setValues((prev) => ({
+                    ...prev,
+                    telNumberType: event.target.value as "" | "A" | "B" | "固定電話" | "その他",
+                    // その他 以外に戻したら自由入力は残さない
+                    telNumberTypeOther:
+                      event.target.value === "その他" ? prev.telNumberTypeOther : ""
+                  }))
+                }
+              >
+                <option value="">-- 選択してください --</option>
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="固定電話">固定電話</option>
+                <option value="その他">その他</option>
+              </select>
+            </Field>
+
+            {values.telNumberType === "その他" && (
+              <Field label="TEL番号（その他）" required error={errors.telNumberTypeOther?.[0]}>
+                <input
+                  className={inputClass}
+                  placeholder="詳細を入力してください"
+                  value={values.telNumberTypeOther ?? ""}
+                  onChange={(event) =>
+                    setValues((prev) => ({ ...prev, telNumberTypeOther: event.target.value }))
+                  }
+                />
+              </Field>
+            )}
+          </div>
+        )}
 
         {values.gender === "C" && (
           <div className="md:col-span-2">

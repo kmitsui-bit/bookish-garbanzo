@@ -54,6 +54,8 @@ export async function POST(request: Request) {
       appointmentTypeOther: parsed.data.appointmentTypeOther,
       salesName: parsed.data.salesName,
       genderDetail: parsed.data.genderDetail,
+      telNumberType: parsed.data.telNumberType,
+      telNumberTypeOther: parsed.data.telNumberTypeOther,
       selfCall: parsed.data.selfCall,
       telAppointment: parsed.data.telAppointment,
       telSkip: parsed.data.telSkip,

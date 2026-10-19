@@ -46,9 +46,26 @@ export const appointmentFormSchema = z
     appointmentType: z.enum(["蓄電池単体", "創蓄☀️", "その他"]).default("蓄電池単体"),
     appointmentTypeOther: z.string().optional().default(""),
     salesName: z.string().min(1, "営業マン名は必須です"),
-    genderDetail: z.string().optional().default("")
+    genderDetail: z.string().optional().default(""),
+    // 性別ABのときのみ使用。空文字は「未選択」
+    telNumberType: z.enum(["", "A", "B", "固定電話", "その他"]).optional().default(""),
+    telNumberTypeOther: z.string().optional().default("")
   })
   .superRefine((data, ctx) => {
+    // 性別ABのときだけ TEL番号 を必須にする
+    if (data.gender === "AB") {
+      if (!data.telNumberType) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["telNumberType"], message: "TEL番号は必須です" });
+      }
+      if (data.telNumberType === "その他" && !(data.telNumberTypeOther ?? "").trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["telNumberTypeOther"],
+          message: "TEL番号（その他）を入力してください"
+        });
+      }
+    }
+
     if (data.telAppointment) {
       // テレアポモード: TEL日時のみ検証
       if (!data.telApptDateInput) {
