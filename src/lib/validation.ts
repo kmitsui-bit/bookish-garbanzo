@@ -49,7 +49,18 @@ export const appointmentFormSchema = z
     genderDetail: z.string().optional().default(""),
     // 性別ABのときのみ使用。空文字は「未選択」
     telNumberType: z.enum(["", "A", "B", "固定電話", "その他"]).optional().default(""),
-    telNumberTypeOther: z.string().optional().default("")
+    telNumberTypeOther: z.string().optional().default(""),
+    // 5点チェック（各項目のチェック状態と自由記入）
+    fivePointAbKuro: z.boolean().optional().default(false),
+    fivePointAbKuroNote: z.string().optional().default(""),
+    fivePointMeisai: z.boolean().optional().default(false),
+    fivePointMeisaiNote: z.string().optional().default(""),
+    fivePointTableChair: z.boolean().optional().default(false),
+    fivePointTableChairNote: z.string().optional().default(""),
+    fivePointExplainTime: z.boolean().optional().default(false),
+    fivePointExplainTimeNote: z.string().optional().default(""),
+    fivePointSokketsu: z.boolean().optional().default(false),
+    fivePointSokketsuNote: z.string().optional().default("")
   })
   .superRefine((data, ctx) => {
     // 性別ABのときだけ TEL番号 を必須にする

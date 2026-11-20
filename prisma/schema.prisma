@@ -40,6 +40,18 @@ model Appointment {
   // 性別ABのときの「TEL番号」: A / B / 固定電話 / その他
   telNumberType            String?
   telNumberTypeOther       String?
+  // 5点チェック（ABクロ / 明細 / テーブル・椅子 / 説明時間 / 即決）
+  // 各項目の チェック状態 と 横の自由記入 を保持する
+  fivePointAbKuro          Boolean           @default(false)
+  fivePointAbKuroNote      String?
+  fivePointMeisai          Boolean           @default(false)
+  fivePointMeisaiNote      String?
+  fivePointTableChair      Boolean           @default(false)
+  fivePointTableChairNote  String?
+  fivePointExplainTime     Boolean           @default(false)
+  fivePointExplainTimeNote String?
+  fivePointSokketsu        Boolean           @default(false)
+  fivePointSokketsuNote    String?
   selfCall                 Boolean           @default(false)
   telAppointment           Boolean           @default(false)
   telSkip                  Boolean           @default(false)

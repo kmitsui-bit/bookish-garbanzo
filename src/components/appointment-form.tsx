@@ -7,6 +7,13 @@ import { toFormDate, toFormTime, getTomorrowDate, getDateMinusOne } from "@/lib/
 import type { AppointmentFormInput } from "@/lib/validation";
 import { cn } from "@/lib/utils";
 import { DateInput } from "@/components/date-input";
+import {
+  FIVE_POINT_ITEMS,
+  FIVE_POINT_TOTAL,
+  applyFivePointToDetail,
+  buildFivePointText,
+  countFivePoint
+} from "@/lib/five-point";
 
 type Props = {
   mode: "create" | "edit";
@@ -104,7 +111,17 @@ const emptyValues: AppointmentFormInput = {
   salesName: "",
   genderDetail: "",
   telNumberType: "",
-  telNumberTypeOther: ""
+  telNumberTypeOther: "",
+  fivePointAbKuro: false,
+  fivePointAbKuroNote: "",
+  fivePointMeisai: false,
+  fivePointMeisaiNote: "",
+  fivePointTableChair: false,
+  fivePointTableChairNote: "",
+  fivePointExplainTime: false,
+  fivePointExplainTimeNote: "",
+  fivePointSokketsu: false,
+  fivePointSokketsuNote: ""
 };
 
 function Field({
@@ -203,7 +220,17 @@ export function AppointmentForm({ mode, initialValues, appointmentId, staffNames
       genderDetail: initialValues?.genderDetail ?? "",
       telNumberType:
         (initialValues?.telNumberType as "" | "A" | "B" | "固定電話" | "その他") ?? "",
-      telNumberTypeOther: initialValues?.telNumberTypeOther ?? ""
+      telNumberTypeOther: initialValues?.telNumberTypeOther ?? "",
+      fivePointAbKuro: initialValues?.fivePointAbKuro ?? false,
+      fivePointAbKuroNote: initialValues?.fivePointAbKuroNote ?? "",
+      fivePointMeisai: initialValues?.fivePointMeisai ?? false,
+      fivePointMeisaiNote: initialValues?.fivePointMeisaiNote ?? "",
+      fivePointTableChair: initialValues?.fivePointTableChair ?? false,
+      fivePointTableChairNote: initialValues?.fivePointTableChairNote ?? "",
+      fivePointExplainTime: initialValues?.fivePointExplainTime ?? false,
+      fivePointExplainTimeNote: initialValues?.fivePointExplainTimeNote ?? "",
+      fivePointSokketsu: initialValues?.fivePointSokketsu ?? false,
+      fivePointSokketsuNote: initialValues?.fivePointSokketsuNote ?? ""
     };
   }, [initialValues]);
 
@@ -222,6 +249,30 @@ export function AppointmentForm({ mode, initialValues, appointmentId, staffNames
     if (failureCount === 0) return;
     feedbackRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [failureCount]);
+
+  // 直前に詳細へ追記した5点テキスト。変更時に積み重ならないよう差し替えに使う
+  const fivePointTextRef = useRef<string | null>(buildFivePointText(initialForm));
+
+  const fivePointChecked = countFivePoint(values);
+  const allFivePointChecked = fivePointChecked === FIVE_POINT_TOTAL;
+
+  /** 5点の変更を反映しつつ、詳細欄の末尾も追従させる */
+  function updateFivePoint(patch: Partial<AppointmentFormInput>) {
+    const next = { ...values, ...patch };
+    const nextText = buildFivePointText(next);
+    const detail = applyFivePointToDetail(next.detail ?? "", nextText, fivePointTextRef.current);
+    fivePointTextRef.current = nextText;
+    setValues({ ...next, detail });
+  }
+
+  /** 5点OK: 下の5項目を一括で切り替える */
+  function toggleAllFivePoint(checked: boolean) {
+    const patch: Partial<AppointmentFormInput> = {};
+    for (const item of FIVE_POINT_ITEMS) {
+      (patch as Record<string, boolean>)[item.key] = checked;
+    }
+    updateFivePoint(patch);
+  }
 
   const submitUrl = mode === "create" ? "/api/appointments" : `/api/appointments/${appointmentId}`;
   const method = mode === "create" ? "POST" : "PATCH";
@@ -252,6 +303,8 @@ export function AppointmentForm({ mode, initialValues, appointmentId, staffNames
 
     if (mode === "create") {
       setValues({ ...emptyValues });
+      // 連続登録時に前回の5点テキストを引きずらないようにする
+      fivePointTextRef.current = null;
       setMessage("登録・通知が完了しました");
     } else {
       setMessage("更新が完了しました");
@@ -715,6 +768,70 @@ export function AppointmentForm({ mode, initialValues, appointmentId, staffNames
           onChange={(event) => setValues((prev) => ({ ...prev, coordinates: event.target.value }))}
         />
       </Field>
+
+      {/* 5点 */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 text-sm font-medium text-slate-800">
+          <span>5点</span>
+          <span className="text-xs font-normal text-slate-400">
+            {fivePointChecked} / {FIVE_POINT_TOTAL}
+          </span>
+        </div>
+
+        {/* 5点OK: 下の5項目をまとめて切り替えるマスター。他と区別できる見た目にする */}
+        <label
+          className={cn(
+            "flex cursor-pointer items-center gap-3 rounded-2xl border-2 px-4 py-3 transition",
+            allFivePointChecked
+              ? "border-emerald-400 bg-emerald-50 shadow-sm"
+              : "border-dashed border-slate-300 bg-slate-50"
+          )}
+        >
+          <input
+            type="checkbox"
+            checked={allFivePointChecked}
+            onChange={(event) => toggleAllFivePoint(event.target.checked)}
+            className="h-5 w-5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+          />
+          <div>
+            <p
+              className={cn(
+                "text-sm font-bold",
+                allFivePointChecked ? "text-emerald-800" : "text-slate-900"
+              )}
+            >
+              5点OK
+            </p>
+            <p className="text-xs text-slate-500">ONで下の5項目すべてにチェックが入ります</p>
+          </div>
+        </label>
+
+        <div className="space-y-2 rounded-2xl border border-slate-200 bg-white p-3">
+          {FIVE_POINT_ITEMS.map((item) => (
+            <div key={item.key} className="flex items-center gap-2">
+              <label className="flex w-32 shrink-0 cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={!!values[item.key]}
+                  onChange={(event) =>
+                    updateFivePoint({ [item.key]: event.target.checked } as Partial<AppointmentFormInput>)
+                  }
+                  className="h-4 w-4 shrink-0 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
+                />
+                <span className="text-sm text-slate-800">{item.label}</span>
+              </label>
+              <input
+                className={cn(inputClass, "min-w-0 flex-1 px-3 py-2 text-sm")}
+                placeholder="メモ（任意）"
+                value={values[item.noteKey] ?? ""}
+                onChange={(event) =>
+                  updateFivePoint({ [item.noteKey]: event.target.value } as Partial<AppointmentFormInput>)
+                }
+              />
+            </div>
+          ))}
+        </div>
+      </div>
 
       <Field label="詳細">
         <textarea
