@@ -12,7 +12,8 @@ import {
   FIVE_POINT_TOTAL,
   applyFivePointToDetail,
   buildFivePointText,
-  countFivePoint
+  countFivePoint,
+  isFivePointUsed
 } from "@/lib/five-point";
 
 type Props = {
@@ -46,7 +47,12 @@ const ERROR_FIELD_LABELS: Array<[keyof AppointmentFormInput, string]> = [
   ["telNumberTypeOther", "TEL番号（その他）"],
   ["nameKana", "名前"],
   ["phoneNumber", "電話番号"],
-  ["coordinates", "📍座標"]
+  ["coordinates", "📍座標"],
+  ["fivePointAbKuroNote", "5点：両クロ"],
+  ["fivePointMeisaiNote", "5点：明細"],
+  ["fivePointTableChairNote", "5点：テーブル・椅子"],
+  ["fivePointExplainTimeNote", "5点：説明時間"],
+  ["fivePointSokketsuNote", "5点：即決"]
 ];
 
 function buildErrorSummary(errors: FieldErrors) {
@@ -75,6 +81,13 @@ function buildErrorSummary(errors: FieldErrors) {
 
   return summary;
 }
+
+/** 自由記入が必要な種別と、その入力欄の見せ方 */
+const TYPE_DETAIL: Partial<Record<string, { label: string; placeholder: string }>> = {
+  "その他": { label: "種別（自由記入）", placeholder: "種別を入力してください" },
+  "🔋既設": { label: "🔋既設の内容", placeholder: "メーカー・容量など（例：パナソニック 5.6kWh）" },
+  "🐙屋根貸し": { label: "🐙屋根貸しの内容", placeholder: "会社名など（例：〇〇ソーラー株式会社）" }
+};
 
 const emptyValues: AppointmentFormInput = {
   visitAtDateInput: "",
@@ -150,6 +163,61 @@ function Field({
   );
 }
 
+/**
+ * High / Low の2項目を1つの見出しにまとめて見せる。
+ * 「どちらが高い月か」がひと目で分かるよう ▲▼ と色を付ける。
+ */
+function HighLowField({
+  label,
+  hint,
+  inputClassName,
+  highValue,
+  lowValue,
+  onHighChange,
+  onLowChange
+}: {
+  label: string;
+  hint?: string;
+  inputClassName: string;
+  highValue: string;
+  lowValue: string;
+  onHighChange: (value: string) => void;
+  onLowChange: (value: string) => void;
+}) {
+  return (
+    <div className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
+      <div className="flex items-center gap-2 text-sm font-medium text-slate-800">
+        <span>{label}</span>
+        {hint ? <span className="text-xs font-normal text-slate-400">{hint}</span> : null}
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <label className="space-y-1">
+          <span className="flex items-center gap-1 text-xs font-semibold text-rose-600">
+            ▲ High
+            <span className="font-normal text-slate-400">高い月</span>
+          </span>
+          <input
+            className={cn(inputClassName, "bg-white px-3 py-2 text-sm")}
+            value={highValue}
+            onChange={(event) => onHighChange(event.target.value)}
+          />
+        </label>
+        <label className="space-y-1">
+          <span className="flex items-center gap-1 text-xs font-semibold text-sky-600">
+            ▼ Low
+            <span className="font-normal text-slate-400">安い月</span>
+          </span>
+          <input
+            className={cn(inputClassName, "bg-white px-3 py-2 text-sm")}
+            value={lowValue}
+            onChange={(event) => onLowChange(event.target.value)}
+          />
+        </label>
+      </div>
+    </div>
+  );
+}
+
 function normalizeTimeInput(value: string) {
   const digits = value.replace(/\D/g, "").slice(0, 4);
   if (!digits) return "";
@@ -214,7 +282,7 @@ export function AppointmentForm({ mode, initialValues, appointmentId, staffNames
       selfCall: initialValues?.selfCall ?? false,
       telAppointment: initialValues?.telAppointment ?? false,
       telSkip: (initialValues as { telSkip?: boolean })?.telSkip ?? false,
-      appointmentType: (initialValues?.appointmentType as "蓄電池単体" | "創蓄☀️" | "その他") ?? "蓄電池単体",
+      appointmentType: (initialValues?.appointmentType as "蓄電池単体" | "創蓄☀️" | "🔋既設" | "🐙屋根貸し" | "その他") ?? "蓄電池単体",
       appointmentTypeOther: initialValues?.appointmentTypeOther ?? "",
       salesName: initialValues?.salesName ?? "",
       genderDetail: initialValues?.genderDetail ?? "",
@@ -254,6 +322,9 @@ export function AppointmentForm({ mode, initialValues, appointmentId, staffNames
   const fivePointTextRef = useRef<string | null>(buildFivePointText(initialForm));
 
   const fivePointChecked = countFivePoint(values);
+  const fivePointUsed = isFivePointUsed(values);
+  // 自由記入が必要な種別かどうか
+  const typeDetail = TYPE_DETAIL[values.appointmentType ?? "蓄電池単体"];
   const allFivePointChecked = fivePointChecked === FIVE_POINT_TOTAL;
 
   /** 5点の変更を反映しつつ、詳細欄の末尾も追従させる */
@@ -383,30 +454,36 @@ export function AppointmentForm({ mode, initialValues, appointmentId, staffNames
           className={inputClass}
           value={values.appointmentType}
           onChange={(event) => {
-            const t = event.target.value as "蓄電池単体" | "創蓄☀️" | "その他";
+            const t = event.target.value as "蓄電池単体" | "創蓄☀️" | "🔋既設" | "🐙屋根貸し" | "その他";
             setValues((prev) => ({
               ...prev,
               appointmentType: t,
+              // 種別を切り替えたら前の種別向けの記入は残さない
+              appointmentTypeOther: TYPE_DETAIL[t] ? prev.appointmentTypeOther : "",
               specialConditions: t === "その他" ? prev.appointmentTypeOther : prev.specialConditions
             }));
           }}
         >
           <option value="蓄電池単体">蓄電池単体</option>
           <option value="創蓄☀️">創蓄☀️</option>
+          <option value="🔋既設">🔋既設</option>
+          <option value="🐙屋根貸し">🐙屋根貸し</option>
           <option value="その他">その他</option>
         </select>
       </label>
 
-      {values.appointmentType === "その他" && (
-        <Field label="種別（自由記入）" required error={errors.appointmentTypeOther?.[0]}>
+      {typeDetail && (
+        <Field label={typeDetail.label} required error={errors.appointmentTypeOther?.[0]}>
           <input
             className={inputClass}
-            placeholder="種別を入力してください"
+            placeholder={typeDetail.placeholder}
             value={values.appointmentTypeOther}
             onChange={(event) => setValues((prev) => ({
               ...prev,
               appointmentTypeOther: event.target.value,
-              specialConditions: event.target.value
+              // その他 は従来どおり特殊条件にも反映する
+              specialConditions:
+                prev.appointmentType === "その他" ? event.target.value : prev.specialConditions
             }))}
           />
         </Field>
@@ -703,24 +780,33 @@ export function AppointmentForm({ mode, initialValues, appointmentId, staffNames
           />
         </Field>
 
-        <Field label="電気代（High）">
-          <input className={inputClass} value={values.electricityCostHigh} onChange={(event) => setValues((prev) => ({ ...prev, electricityCostHigh: event.target.value }))} />
-        </Field>
-        <Field label="電気代（Low）">
-          <input className={inputClass} value={values.electricityCostLow} onChange={(event) => setValues((prev) => ({ ...prev, electricityCostLow: event.target.value }))} />
-        </Field>
-        <Field label="売電（High）">
-          <input className={inputClass} value={values.sellPowerHigh} onChange={(event) => setValues((prev) => ({ ...prev, sellPowerHigh: event.target.value }))} />
-        </Field>
-        <Field label="売電（Low）">
-          <input className={inputClass} value={values.sellPowerLow} onChange={(event) => setValues((prev) => ({ ...prev, sellPowerLow: event.target.value }))} />
-        </Field>
-        <Field label="ガス代（High）" hint="任意">
-          <input className={inputClass} value={values.gasCostHigh} onChange={(event) => setValues((prev) => ({ ...prev, gasCostHigh: event.target.value }))} />
-        </Field>
-        <Field label="ガス代（Low）" hint="任意">
-          <input className={inputClass} value={values.gasCostLow} onChange={(event) => setValues((prev) => ({ ...prev, gasCostLow: event.target.value }))} />
-        </Field>
+        <div className="md:col-span-2 space-y-3">
+          <HighLowField
+            label="電気代"
+            inputClassName={inputClass}
+            highValue={values.electricityCostHigh ?? ""}
+            lowValue={values.electricityCostLow ?? ""}
+            onHighChange={(value) => setValues((prev) => ({ ...prev, electricityCostHigh: value }))}
+            onLowChange={(value) => setValues((prev) => ({ ...prev, electricityCostLow: value }))}
+          />
+          <HighLowField
+            label="売電"
+            inputClassName={inputClass}
+            highValue={values.sellPowerHigh ?? ""}
+            lowValue={values.sellPowerLow ?? ""}
+            onHighChange={(value) => setValues((prev) => ({ ...prev, sellPowerHigh: value }))}
+            onLowChange={(value) => setValues((prev) => ({ ...prev, sellPowerLow: value }))}
+          />
+          <HighLowField
+            label="ガス代"
+            hint="任意"
+            inputClassName={inputClass}
+            highValue={values.gasCostHigh ?? ""}
+            lowValue={values.gasCostLow ?? ""}
+            onHighChange={(value) => setValues((prev) => ({ ...prev, gasCostHigh: value }))}
+            onLowChange={(value) => setValues((prev) => ({ ...prev, gasCostLow: value }))}
+          />
+        </div>
 
         <Field label="パネル年数">
           <input
@@ -807,29 +893,43 @@ export function AppointmentForm({ mode, initialValues, appointmentId, staffNames
         </label>
 
         <div className="space-y-2 rounded-2xl border border-slate-200 bg-white p-3">
-          {FIVE_POINT_ITEMS.map((item) => (
-            <div key={item.key} className="flex items-center gap-2">
-              <label className="flex w-32 shrink-0 cursor-pointer items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={!!values[item.key]}
-                  onChange={(event) =>
-                    updateFivePoint({ [item.key]: event.target.checked } as Partial<AppointmentFormInput>)
-                  }
-                  className="h-4 w-4 shrink-0 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
-                />
-                <span className="text-sm text-slate-800">{item.label}</span>
-              </label>
-              <input
-                className={cn(inputClass, "min-w-0 flex-1 px-3 py-2 text-sm")}
-                placeholder="メモ（任意）"
-                value={values[item.noteKey] ?? ""}
-                onChange={(event) =>
-                  updateFivePoint({ [item.noteKey]: event.target.value } as Partial<AppointmentFormInput>)
-                }
-              />
-            </div>
-          ))}
+          {FIVE_POINT_ITEMS.map((item) => {
+            const checked = !!values[item.key];
+            // 5点を触っている場合、チェックが無い項目は記入が必須
+            const noteRequired = fivePointUsed && !checked;
+            const noteError = errors[item.noteKey]?.[0];
+
+            return (
+              <div key={item.key} className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <label className="flex w-32 shrink-0 cursor-pointer items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={(event) =>
+                        updateFivePoint({ [item.key]: event.target.checked } as Partial<AppointmentFormInput>)
+                      }
+                      className="h-4 w-4 shrink-0 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
+                    />
+                    <span className="text-sm text-slate-800">{item.label}</span>
+                  </label>
+                  <input
+                    className={cn(
+                      inputClass,
+                      "min-w-0 flex-1 px-3 py-2 text-sm",
+                      noteError && "border-rose-300 focus:border-rose-400 focus:ring-rose-100"
+                    )}
+                    placeholder={noteRequired ? "理由を入力（必須）" : "メモ（任意）"}
+                    value={values[item.noteKey] ?? ""}
+                    onChange={(event) =>
+                      updateFivePoint({ [item.noteKey]: event.target.value } as Partial<AppointmentFormInput>)
+                    }
+                  />
+                </div>
+                {noteError ? <p className="pl-[8.5rem] text-xs text-rose-600">{noteError}</p> : null}
+              </div>
+            );
+          })}
         </div>
       </div>
 

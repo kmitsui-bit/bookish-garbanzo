@@ -60,6 +60,12 @@ export function buildFormSubmittedMessage(appointment: Appointment) {
     ? appointment.appointmentTypeOther || "その他"
     : appointment.appointmentType || "蓄電池単体";
 
+  // 🔋既設 / 🐙屋根貸し は種別名を残したまま、記入内容を本文に出す
+  const typeDetailLine =
+    appointment.appointmentType === "🔋既設" || appointment.appointmentType === "🐙屋根貸し"
+      ? line(appointment.appointmentType, appointment.appointmentTypeOther)
+      : null;
+
   const salesName = appointment.salesName || "";
 
   const telAppoLabel = appointment.telAppointment ? " ☎️テレアポ" : "";
@@ -102,6 +108,7 @@ export function buildFormSubmittedMessage(appointment: Appointment) {
     line("パネル年数", formatPanelYears(appointment.panelYears)),
     line("給湯設備", appointment.gasOrEcoCute),
     line("ガス使用設備", appointment.gasUsageEquipment),
+    typeDetailLine,
     line("⭐️特殊条件", appointment.specialConditions),
     line("📍座標", appointment.coordinates),
     "",

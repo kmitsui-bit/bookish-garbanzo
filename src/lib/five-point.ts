@@ -7,7 +7,8 @@
  */
 
 export const FIVE_POINT_ITEMS = [
-  { key: "fivePointAbKuro", noteKey: "fivePointAbKuroNote", label: "ABクロ" },
+  // key はDBカラム名。表示名のみ「両クロ」へ変更（カラム改名は既存データを失うため行わない）
+  { key: "fivePointAbKuro", noteKey: "fivePointAbKuroNote", label: "両クロ" },
   { key: "fivePointMeisai", noteKey: "fivePointMeisaiNote", label: "明細" },
   { key: "fivePointTableChair", noteKey: "fivePointTableChairNote", label: "テーブル・椅子" },
   { key: "fivePointExplainTime", noteKey: "fivePointExplainTimeNote", label: "説明時間" },
@@ -21,6 +22,14 @@ export type FivePointNoteKey = (typeof FIVE_POINT_ITEMS)[number]["noteKey"];
 
 export type FivePointState = Partial<Record<FivePointKey, boolean>> &
   Partial<Record<FivePointNoteKey, string | null>>;
+
+/** 5点を触ったか（チェックか記入が一つでもあるか） */
+export function isFivePointUsed(state: FivePointState): boolean {
+  return (
+    FIVE_POINT_ITEMS.some((item) => state[item.key]) ||
+    FIVE_POINT_ITEMS.some((item) => (state[item.noteKey] ?? "").trim())
+  );
+}
 
 /** チェックが入っている項目数 */
 export function countFivePoint(state: FivePointState): number {

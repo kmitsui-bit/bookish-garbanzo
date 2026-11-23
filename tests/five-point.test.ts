@@ -45,7 +45,7 @@ describe("buildFivePointText", () => {
     const text = buildFivePointText({ fivePointAbKuroNote: "未確認" });
 
     expect(text).toBe(
-      "⚠️0点OK\n・ABクロ：未確認\n・明細\n・テーブル・椅子\n・説明時間\n・即決"
+      "⚠️0点OK\n・両クロ：未確認\n・明細\n・テーブル・椅子\n・説明時間\n・即決"
     );
   });
 

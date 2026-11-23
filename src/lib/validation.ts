@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { parseDateTimeInput, getDateMinusOne } from "@/lib/date";
+import { FIVE_POINT_ITEMS, isFivePointUsed } from "@/lib/five-point";
 
 const kataKanaRegex = /^[ァ-ヶー　\s]+$/;
 const timePattern = /^([01]?\d|2[0-3]):([0-5]\d)$/;
@@ -43,7 +44,9 @@ export const appointmentFormSchema = z
     detail: z.string().optional().default(""),
     selfCall: z.boolean().optional().default(false),
     telAppointment: z.boolean().optional().default(false),
-    appointmentType: z.enum(["蓄電池単体", "創蓄☀️", "その他"]).default("蓄電池単体"),
+    appointmentType: z
+      .enum(["蓄電池単体", "創蓄☀️", "🔋既設", "🐙屋根貸し", "その他"])
+      .default("蓄電池単体"),
     appointmentTypeOther: z.string().optional().default(""),
     salesName: z.string().min(1, "営業マン名は必須です"),
     genderDetail: z.string().optional().default(""),
@@ -63,6 +66,29 @@ export const appointmentFormSchema = z
     fivePointSokketsuNote: z.string().optional().default("")
   })
   .superRefine((data, ctx) => {
+    // 自由記入が要る種別（UI でも必須表示している）
+    const typeNeedsDetail = ["その他", "🔋既設", "🐙屋根貸し"].includes(data.appointmentType);
+    if (typeNeedsDetail && !(data.appointmentTypeOther ?? "").trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["appointmentTypeOther"],
+        message: `${data.appointmentType}の内容を入力してください`
+      });
+    }
+
+    // 5点を触ったときだけ、チェックが入っていない項目の記入を必須にする
+    if (isFivePointUsed(data)) {
+      for (const item of FIVE_POINT_ITEMS) {
+        if (data[item.key]) continue;
+        if ((data[item.noteKey] ?? "").trim()) continue;
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [item.noteKey],
+          message: `${item.label}の内容を入力してください`
+        });
+      }
+    }
+
     // 性別ABのときだけ TEL番号 を必須にする
     if (data.gender === "AB") {
       if (!data.telNumberType) {

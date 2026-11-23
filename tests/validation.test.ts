@@ -189,3 +189,87 @@ describe("TEL番号（性別AB）", () => {
     }
   });
 });
+
+describe("種別の自由記入", () => {
+  it("🔋既設 / 🐙屋根貸し / その他 は内容が必須", () => {
+    for (const appointmentType of ["🔋既設", "🐙屋根貸し", "その他"]) {
+      const result = parseAppointmentPayload({ ...basePayload, appointmentType });
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(fieldErrorsOf(result).appointmentTypeOther?.[0]).toContain("入力してください");
+      }
+    }
+  });
+
+  it("内容を入れれば通る", () => {
+    const result = parseAppointmentPayload({
+      ...basePayload,
+      appointmentType: "🔋既設",
+      appointmentTypeOther: "パナソニック 5.6kWh"
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.appointmentTypeOther).toBe("パナソニック 5.6kWh");
+  });
+
+  it("蓄電池単体・創蓄☀️ は内容を求めない", () => {
+    for (const appointmentType of ["蓄電池単体", "創蓄☀️"]) {
+      expect(parseAppointmentPayload({ ...basePayload, appointmentType }).success).toBe(true);
+    }
+  });
+});
+
+describe("5点の未チェック項目", () => {
+  it("5点に触れていなければ何も求めない", () => {
+    expect(parseAppointmentPayload(basePayload).success).toBe(true);
+  });
+
+  it("触れたら未チェック項目の記入が必須", () => {
+    const result = parseAppointmentPayload({ ...basePayload, fivePointAbKuro: true });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const errors = fieldErrorsOf(result);
+      expect(errors.fivePointMeisaiNote?.[0]).toContain("明細");
+      expect(errors.fivePointSokketsuNote?.[0]).toContain("即決");
+      // チェック済みの項目は求められない
+      expect(errors.fivePointAbKuroNote).toBeUndefined();
+    }
+  });
+
+  it("未チェックでも記入があれば通る", () => {
+    const result = parseAppointmentPayload({
+      ...basePayload,
+      fivePointAbKuro: true,
+      fivePointMeisaiNote: "領収書のみ",
+      fivePointTableChairNote: "椅子が2脚",
+      fivePointExplainTimeNote: "30分",
+      fivePointSokketsuNote: "検討中"
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it("5点すべてチェックなら記入なしで通る", () => {
+    const result = parseAppointmentPayload({
+      ...basePayload,
+      fivePointAbKuro: true,
+      fivePointMeisai: true,
+      fivePointTableChair: true,
+      fivePointExplainTime: true,
+      fivePointSokketsu: true
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it("記入だけでも「触れた」とみなす", () => {
+    const result = parseAppointmentPayload({ ...basePayload, fivePointMeisaiNote: "領収書のみ" });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(fieldErrorsOf(result).fivePointAbKuroNote?.[0]).toContain("両クロ");
+    }
+  });
+});
